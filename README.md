@@ -17,7 +17,7 @@ For getting start with Crossplane setup installation and deployment, see the [of
 ```bash
 kubectl create secret generic provider-zpa-creds --from-literal=token=$API_TOKEN -n crossplane-system
 ```
-2. Create a new [ProviderConfig](examples/config/example-provider-config.yaml) resource with a references to this secret
+2. Create a new [ProviderConfig](examples/config/zpa-provider-config.yaml) resource with a references to this secret
 
 You are now ready to create resources as described in [examples](examples).
 
