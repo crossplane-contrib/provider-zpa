@@ -1,0 +1,21 @@
+apiVersion: zpa.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: zpa-provider
+spec:
+  host: https://zscaler.com/
+  basepath: '/'
+  credentials:
+    secretRef:
+      key: credentials
+      name: zpa-provider-creds
+      namespace: crossplane-system
+    source: Secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zpa-provider-creds
+type: Opaque
+data:
+  token: dG9rZW4= #token
