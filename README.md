@@ -14,9 +14,6 @@ For getting start with Crossplane setup installation and deployment, see the [of
 ### To use provider-zpa
 
 1. Create a new Zscaler ZPA API token, and store it in a K8s secret
-```bash
-kubectl create secret generic provider-zpa-creds --from-literal=token=$API_TOKEN -n crossplane-system
-```
 2. Create a new [ProviderConfig](examples/config/zpa-provider-config.yaml) resource with a references to this secret
 
 You are now ready to create resources as described in [examples](examples).
@@ -89,7 +86,3 @@ To list all available options
     make help
 
 [See more](./INSTALL.md)
-
-## Code generation
-
-See [CODE_GENERATION.md](./CODE_GENERATION.md)
