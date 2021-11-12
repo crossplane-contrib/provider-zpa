@@ -24,6 +24,7 @@ import (
 
 	"github.com/haarchri/provider-zpa/pkg/controller/application"
 	"github.com/haarchri/provider-zpa/pkg/controller/config"
+	"github.com/haarchri/provider-zpa/pkg/controller/segment"
 )
 
 // Setup creates all Cluster API controllers with the supplied logger and adds
@@ -32,6 +33,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 	for _, setup := range []func(ctrl.Manager, logging.Logger, workqueue.RateLimiter) error{
 		config.Setup,
 		application.SetupApplication,
+		segment.SetupSegment,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err

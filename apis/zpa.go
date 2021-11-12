@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	applicationv1alpha1 "github.com/haarchri/provider-zpa/apis/application/v1alpha1"
+	segmentv1alpha1 "github.com/haarchri/provider-zpa/apis/segment/v1alpha1"
 	zpav1alpha1 "github.com/haarchri/provider-zpa/apis/v1alpha1"
 )
 
@@ -29,6 +30,7 @@ func init() {
 	AddToSchemes = append(AddToSchemes,
 		zpav1alpha1.SchemeBuilder.AddToScheme,
 		applicationv1alpha1.SchemeBuilder.AddToScheme,
+		segmentv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

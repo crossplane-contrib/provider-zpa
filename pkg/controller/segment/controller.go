@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package application
+package segment
 
 import (
 	"context"
@@ -36,32 +36,39 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 
 	zpa "github.com/haarchri/zpa-go-client/pkg/client"
-	"github.com/haarchri/zpa-go-client/pkg/client/application_controller"
+	"github.com/haarchri/zpa-go-client/pkg/client/segment_group_controller"
 	"github.com/haarchri/zpa-go-client/pkg/models"
 
-	v1alpha1 "github.com/haarchri/provider-zpa/apis/application/v1alpha1"
+	v1alpha1 "github.com/haarchri/provider-zpa/apis/segment/v1alpha1"
 	zpaclient "github.com/haarchri/provider-zpa/pkg/client"
 )
 
 const (
-	errNotApplication = "managed resource is not an Application custom resource"
-	errCreateFailed   = "cannot create Application"
-	errDescribeFailed = "cannot describe Application"
-	errDeleteFailed   = "cannot delete Application"
+	errNotSegment     = "managed resource is not an Segment custom resource"
+	errCreateFailed   = "cannot create Segment"
+	errDescribeFailed = "cannot describe Segment"
+	errDeleteFailed   = "cannot delete Segment"
+
+// errUpdateFailed                = "cannot update Segment custom resource"
+// errIsUpToDateFailed            = "isUpToDate failed"
+// errGetSelectors                = "cannot get system selectors"
+// errGetSelectorsInvalidResponse = "get system selectors returned an unexpected response"
+// errCompareSelectors            = "cannot compare selectors"
+// errUpdateSelectors             = "cannotUpdateselectors"
 )
 
-// SetupApplication adds a controller that reconciles Applications.
-func SetupApplication(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	name := managed.ControllerName(v1alpha1.ApplicationGroupKind)
+// SetupSegment adds a controller that reconciles Segments.
+func SetupSegment(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+	name := managed.ControllerName(v1alpha1.SegmentGroupKind)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
 			RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
 		}).
-		For(&v1alpha1.Application{}).
+		For(&v1alpha1.Segment{}).
 		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.ApplicationGroupVersionKind),
+			resource.ManagedKind(v1alpha1.SegmentGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
 			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
@@ -80,9 +87,9 @@ type external struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	_, ok := mg.(*v1alpha1.Application)
+	_, ok := mg.(*v1alpha1.Segment)
 	if !ok {
-		return nil, errors.New(errNotApplication)
+		return nil, errors.New(errNotSegment)
 	}
 
 	cfg, err := zpaclient.GetConfig(ctx, c.kube, mg)
@@ -95,9 +102,9 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mg.(*v1alpha1.Application)
+	cr, ok := mg.(*v1alpha1.Segment)
 	if !ok {
-		return managed.ExternalObservation{}, errors.New(errNotApplication)
+		return managed.ExternalObservation{}, errors.New(errNotSegment)
 	}
 
 	id := meta.GetExternalName(cr)
@@ -109,14 +116,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	// string to int64
-	applicationID, _ := strconv.ParseInt(id, 10, 64)
+	SegmentID, _ := strconv.ParseInt(id, 10, 64)
 
-	req := &application_controller.GetApplicationUsingGET1Params{
-		Context:       ctx,
-		ApplicationID: applicationID,
-		CustomerID:    cr.Spec.ForProvider.CustomerID,
+	req := &segment_group_controller.GetSegmentGroupUsingGET1Params{
+		Context:        ctx,
+		SegmentGroupID: SegmentID,
+		CustomerID:     cr.Spec.ForProvider.CustomerID,
 	}
-	resp, reqErr := e.client.ApplicationController.GetApplicationUsingGET1(req)
+	resp, reqErr := e.client.SegmentGroupController.GetSegmentGroupUsingGET1(req)
 	if reqErr != nil {
 		return managed.ExternalObservation{ResourceExists: false}, errors.Wrap(resource.Ignore(IsNotFound, reqErr), errDescribeFailed)
 	}
@@ -134,37 +141,23 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.ExternalCreation, error) {
-	cr, ok := mg.(*v1alpha1.Application)
+	cr, ok := mg.(*v1alpha1.Segment)
 	if !ok {
-		return managed.ExternalCreation{}, errors.New(errNotApplication)
+		return managed.ExternalCreation{}, errors.New(errNotSegment)
 	}
 
-	req := &application_controller.AddApplicationUsingPOST1Params{
+	req := &segment_group_controller.AddSegmentGroupUsingPOST1Params{
 		Context:    ctx,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
-		Application: &models.ApplicationResource{
-			BypassType:           cr.Spec.ForProvider.BypassType,
-			ConfigSpace:          cr.Spec.ForProvider.ConfigSpace,
-			DefaultIdleTimeout:   cr.Spec.ForProvider.DefaultIdleTimeout,
-			DefaultMaxAge:        cr.Spec.ForProvider.DefaultMaxAge,
-			Description:          cr.Spec.ForProvider.Description,
-			DomainNames:          cr.Spec.ForProvider.DomainNames,
-			DoubleEncrypt:        zpaclient.BoolValue(cr.Spec.ForProvider.DoubleEncrypt),
-			Enabled:              zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
-			HealthCheckType:      cr.Spec.ForProvider.HealthCheckType,
-			HealthReporting:      cr.Spec.ForProvider.HealthReporting,
-			IcmpAccessType:       cr.Spec.ForProvider.IcmpAccessType,
-			IPAnchored:           zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
-			IsCnameEnabled:       zpaclient.BoolValue(cr.Spec.ForProvider.IsCnameEnabled),
-			Name:                 cr.Name,
-			PassiveHealthEnabled: zpaclient.BoolValue(cr.Spec.ForProvider.PassiveHealthEnabled),
-			SegmentGroupID:       zpaclient.StringValue(cr.Spec.ForProvider.SegmentGroupID),
-			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
-			UDPPortRanges:        cr.Spec.ForProvider.UDPPortRanges,
+		SegmentGroup: &models.SegmentGroup{
+			Name:        zpaclient.String(cr.Name),
+			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
+			Description: cr.Spec.ForProvider.Description,
+			Enabled:     zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
 		},
 	}
 
-	resp, err := e.client.ApplicationController.AddApplicationUsingPOST1(req)
+	resp, err := e.client.SegmentGroupController.AddSegmentGroupUsingPOST1(req)
 	if err != nil {
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
@@ -181,28 +174,26 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*v1alpha1.Application)
+	cr, ok := mg.(*v1alpha1.Segment)
 	if !ok {
-		return errors.New(errNotApplication)
+		return errors.New(errNotSegment)
 	}
 
 	id := meta.GetExternalName(cr)
 	if id == "" {
-		return errors.New(errNotApplication)
+		return errors.New(errNotSegment)
 	}
 
 	// string to int64
-	applicationID, _ := strconv.ParseInt(id, 10, 64)
-	forceDeleteApplication := true
+	SegmentGroupID, _ := strconv.ParseInt(id, 10, 64)
 
-	req := &application_controller.DeleteApplicationUsingDELETE1Params{
-		Context:       ctx,
-		ApplicationID: applicationID,
-		CustomerID:    cr.Spec.ForProvider.CustomerID,
-		ForceDelete:   &forceDeleteApplication,
+	req := &segment_group_controller.DeleteSegmentGroupUsingDELETE1Params{
+		Context:        ctx,
+		SegmentGroupID: SegmentGroupID,
+		CustomerID:     cr.Spec.ForProvider.CustomerID,
 	}
 
-	_, err := e.client.ApplicationController.DeleteApplicationUsingDELETE1(req)
+	_, err := e.client.SegmentGroupController.DeleteSegmentGroupUsingDELETE1(req)
 	if err != nil {
 		return errors.Wrap(err, errDeleteFailed)
 	}
@@ -210,42 +201,10 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	return nil
 }
 
-func (e *external) LateInitialize(cr *v1alpha1.Application, obj *application_controller.GetApplicationUsingGET1OK) { // nolint:gocyclo
-
-	if cr.Spec.ForProvider.Enabled == nil {
-		cr.Spec.ForProvider.Enabled = zpaclient.Bool(obj.Payload.Enabled)
-	}
-
-	if cr.Spec.ForProvider.PassiveHealthEnabled == nil {
-		cr.Spec.ForProvider.PassiveHealthEnabled = zpaclient.Bool(obj.Payload.PassiveHealthEnabled)
-	}
-
-	if cr.Spec.ForProvider.DoubleEncrypt == nil {
-		cr.Spec.ForProvider.DoubleEncrypt = zpaclient.Bool(obj.Payload.DoubleEncrypt)
-	}
+func (e *external) LateInitialize(cr *v1alpha1.Segment, obj *segment_group_controller.GetSegmentGroupUsingGET1OK) { // nolint:gocyclo
 
 	if cr.Spec.ForProvider.ConfigSpace == "" {
 		cr.Spec.ForProvider.ConfigSpace = obj.Payload.ConfigSpace
-	}
-
-	if cr.Spec.ForProvider.BypassType == "" {
-		cr.Spec.ForProvider.BypassType = obj.Payload.BypassType
-	}
-
-	if cr.Spec.ForProvider.HealthCheckType == "" {
-		cr.Spec.ForProvider.HealthCheckType = obj.Payload.HealthCheckType
-	}
-
-	if cr.Spec.ForProvider.IcmpAccessType == "" {
-		cr.Spec.ForProvider.IcmpAccessType = obj.Payload.IcmpAccessType
-	}
-
-	if cr.Spec.ForProvider.IsCnameEnabled == nil {
-		cr.Spec.ForProvider.IsCnameEnabled = zpaclient.Bool(obj.Payload.IsCnameEnabled)
-	}
-
-	if cr.Spec.ForProvider.IPAnchored == nil {
-		cr.Spec.ForProvider.IPAnchored = zpaclient.Bool(obj.Payload.IPAnchored)
 	}
 
 }

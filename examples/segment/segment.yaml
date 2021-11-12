@@ -1,0 +1,10 @@
+apiVersion: zpa.crossplane.io/v1alpha1
+kind: Segment
+metadata:
+  name: example-segment
+spec:
+  forProvider:
+    customerID: 999999999999999999
+    enabled: true
+  providerConfigRef:
+    name: zpa-provider
