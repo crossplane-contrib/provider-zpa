@@ -20,6 +20,7 @@ package apis
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 
+	applicationv1alpha1 "github.com/haarchri/provider-zpa/apis/application/v1alpha1"
 	zpav1alpha1 "github.com/haarchri/provider-zpa/apis/v1alpha1"
 )
 
@@ -27,6 +28,7 @@ func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
 	AddToSchemes = append(AddToSchemes,
 		zpav1alpha1.SchemeBuilder.AddToScheme,
+		applicationv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

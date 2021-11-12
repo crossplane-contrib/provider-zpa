@@ -3,19 +3,27 @@ kind: ProviderConfig
 metadata:
   name: zpa-provider
 spec:
-  host: https://zscaler.com/
+  host: config.private.zscaler.com
   basepath: '/'
-  credentials:
+  clientID:
     secretRef:
-      key: credentials
+      key: clientID
       name: zpa-provider-creds
       namespace: crossplane-system
     source: Secret
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: zpa-provider-creds
-type: Opaque
-data:
-  token: dG9rZW4= #token
+  clientSecret:
+    secretRef:
+      key: clientSecret
+      name: zpa-provider-creds
+      namespace: crossplane-system
+    source: Secret
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: zpa-provider-creds
+#   namespace: crossplane-system
+# type: Opaque
+# data:
+#   clientID: Y2xpZW50X2lk
+#   clientSecret: Y2xpZW50X3NlY3JldAo=

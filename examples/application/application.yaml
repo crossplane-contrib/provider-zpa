@@ -1,0 +1,18 @@
+apiVersion: zpa.crossplane.io/v1alpha1
+kind: Application
+metadata:
+  name: example-application
+spec:
+  forProvider:
+    segmentGroupId: "111111111111111111"
+    customerID: 999999999999999999
+    domainNames:
+      - "test.example.com"
+    tcpPortRanges:
+      - "443"
+      - "443"
+    udpPortRanges:
+      - "443"
+      - "443"
+  providerConfigRef:
+    name: zpa-provider
