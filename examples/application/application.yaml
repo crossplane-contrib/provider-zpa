@@ -4,8 +4,9 @@ metadata:
   name: example-application
 spec:
   forProvider:
-    segmentGroupId: "111111111111111111"
     customerID: 999999999999999999
+    segmentGroupIDRef:
+      name: example-segment
     domainNames:
       - "test.example.com"
     tcpPortRanges:

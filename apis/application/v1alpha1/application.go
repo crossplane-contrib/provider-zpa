@@ -20,7 +20,15 @@ import (
 )
 
 // CustomApplicationParameters that are not part of the ZPA API
-type CustomApplicationParameters struct{}
+type CustomApplicationParameters struct {
+	// SegmentGroupIDRef is a reference to a SegmentGroupID so set external ID
+	// +optional
+	SegmentGroupIDRef *xpv1.Reference `json:"segmentGroupIDRef,omitempty"`
+
+	// SegmentGroupIDSelector selects a reference to a SegmentGroupID so set external ID
+	// +optional
+	SegmentGroupIDSelector *xpv1.Selector `json:"segmentGroupIDSelector,omitempty"`
+}
 
 // A ApplicationParameters defines desired state of a Application
 type ApplicationParameters struct {
@@ -33,9 +41,6 @@ type ApplicationParameters struct {
 	// config space
 	// +kubebuilder:validation:Enum=DEFAULT;SIEM
 	ConfigSpace string `json:"configSpace,omitempty"`
-
-	// Only applicable for a GET request. Ignored in PUT/POST/DELETE requests.
-	CreationTime string `json:"creationTime,omitempty"`
 
 	// default idle timeout
 	DefaultIdleTimeout string `json:"defaultIdleTimeout,omitempty"`
@@ -67,29 +72,17 @@ type ApplicationParameters struct {
 	// +kubebuilder:validation:Enum=PING_TRACEROUTING;PING;NONE
 	IcmpAccessType string `json:"icmpAccessType,omitempty"`
 
-	// Only applicable for a GET request. Ignored in PUT/POST/DELETE requests.
-	ID string `json:"id,omitempty"`
-
 	// ip anchored
 	IPAnchored *bool `json:"ipAnchored,omitempty"`
 
 	// is cname enabled
 	IsCnameEnabled *bool `json:"isCnameEnabled,omitempty"`
 
-	// Only applicable for a GET request. Ignored in PUT/POST/DELETE requests.
-	ModifiedBy string `json:"modifiedBy,omitempty"`
-
-	// Only applicable for a GET request. Ignored in PUT/POST/DELETE requests.
-	ModifiedTime string `json:"modifiedTime,omitempty"`
-
 	// passive health enabled
 	PassiveHealthEnabled *bool `json:"passiveHealthEnabled,omitempty"`
 
 	// segment group Id
-	SegmentGroupID string `json:"segmentGroupId,omitempty"`
-
-	// segment group name
-	SegmentGroupName string `json:"segmentGroupName,omitempty"`
+	SegmentGroupID *string `json:"segmentGroupID,omitempty"`
 
 	// tcp port ranges
 	TCPPortRanges []string `json:"tcpPortRanges"`
