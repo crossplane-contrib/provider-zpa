@@ -50,10 +50,10 @@ type ApplicationParameters struct {
 	DomainNames []string `json:"domainNames"`
 
 	// double encrypt
-	DoubleEncrypt bool `json:"doubleEncrypt,omitempty"`
+	DoubleEncrypt *bool `json:"doubleEncrypt,omitempty"`
 
 	// enabled
-	Enabled bool `json:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty"`
 
 	// health check type
 	// +kubebuilder:validation:Enum=DEFAULT;NONE
@@ -71,10 +71,10 @@ type ApplicationParameters struct {
 	ID string `json:"id,omitempty"`
 
 	// ip anchored
-	IPAnchored bool `json:"ipAnchored,omitempty"`
+	IPAnchored *bool `json:"ipAnchored,omitempty"`
 
 	// is cname enabled
-	IsCnameEnabled bool `json:"isCnameEnabled,omitempty"`
+	IsCnameEnabled *bool `json:"isCnameEnabled,omitempty"`
 
 	// Only applicable for a GET request. Ignored in PUT/POST/DELETE requests.
 	ModifiedBy string `json:"modifiedBy,omitempty"`
@@ -83,7 +83,7 @@ type ApplicationParameters struct {
 	ModifiedTime string `json:"modifiedTime,omitempty"`
 
 	// passive health enabled
-	PassiveHealthEnabled bool `json:"passiveHealthEnabled,omitempty"`
+	PassiveHealthEnabled *bool `json:"passiveHealthEnabled,omitempty"`
 
 	// segment group Id
 	SegmentGroupID string `json:"segmentGroupId,omitempty"`

@@ -92,6 +92,31 @@ func (in *ApplicationParameters) DeepCopyInto(out *ApplicationParameters) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.DoubleEncrypt != nil {
+		in, out := &in.DoubleEncrypt, &out.DoubleEncrypt
+		*out = new(bool)
+		**out = **in
+	}
+	if in.Enabled != nil {
+		in, out := &in.Enabled, &out.Enabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.IPAnchored != nil {
+		in, out := &in.IPAnchored, &out.IPAnchored
+		*out = new(bool)
+		**out = **in
+	}
+	if in.IsCnameEnabled != nil {
+		in, out := &in.IsCnameEnabled, &out.IsCnameEnabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.PassiveHealthEnabled != nil {
+		in, out := &in.PassiveHealthEnabled, &out.PassiveHealthEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.TCPPortRanges != nil {
 		in, out := &in.TCPPortRanges, &out.TCPPortRanges
 		*out = make([]string, len(*in))

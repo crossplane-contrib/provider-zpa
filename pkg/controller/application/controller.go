@@ -47,9 +47,9 @@ const (
 	errNotApplication = "managed resource is not an Application custom resource"
 	errCreateFailed   = "cannot create Application"
 	errDescribeFailed = "cannot describe Application"
+	errDeleteFailed   = "cannot delete Application"
 
 // errUpdateFailed                = "cannot update Application custom resource"
-// errDeleteFailed                = "cannot delete Application"
 // errIsUpToDateFailed            = "isUpToDate failed"
 // errGetSelectors                = "cannot get system selectors"
 // errGetSelectorsInvalidResponse = "get system selectors returned an unexpected response"
@@ -156,15 +156,15 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 			DefaultMaxAge:        cr.Spec.ForProvider.DefaultMaxAge,
 			Description:          cr.Spec.ForProvider.Description,
 			DomainNames:          cr.Spec.ForProvider.DomainNames,
-			DoubleEncrypt:        cr.Spec.ForProvider.DoubleEncrypt,
-			Enabled:              cr.Spec.ForProvider.Enabled,
+			DoubleEncrypt:        zpaclient.BoolValue(cr.Spec.ForProvider.DoubleEncrypt),
+			Enabled:              zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
 			HealthCheckType:      cr.Spec.ForProvider.HealthCheckType,
 			HealthReporting:      cr.Spec.ForProvider.HealthReporting,
 			IcmpAccessType:       cr.Spec.ForProvider.IcmpAccessType,
-			IPAnchored:           cr.Spec.ForProvider.IPAnchored,
-			IsCnameEnabled:       cr.Spec.ForProvider.IsCnameEnabled,
+			IPAnchored:           zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
+			IsCnameEnabled:       zpaclient.BoolValue(cr.Spec.ForProvider.IsCnameEnabled),
 			Name:                 cr.Name,
-			PassiveHealthEnabled: cr.Spec.ForProvider.PassiveHealthEnabled,
+			PassiveHealthEnabled: zpaclient.BoolValue(cr.Spec.ForProvider.PassiveHealthEnabled),
 			SegmentGroupID:       cr.Spec.ForProvider.SegmentGroupID,
 			SegmentGroupName:     cr.Spec.ForProvider.SegmentGroupName,
 			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
@@ -189,56 +189,82 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
+	cr, ok := mg.(*v1alpha1.Application)
+	if !ok {
+		return errors.New(errNotApplication)
+	}
+
+	id := meta.GetExternalName(cr)
+	if id == "" {
+		return errors.New(errNotApplication)
+	}
+
+	// string to int64
+	applicationID, _ := strconv.ParseInt(id, 10, 64)
+	forceDeleteApplication := true
+
+	req := &application_controller.DeleteApplicationUsingDELETE1Params{
+		Context:       ctx,
+		ApplicationID: applicationID,
+		CustomerID:    cr.Spec.ForProvider.CustomerID,
+		ForceDelete:   &forceDeleteApplication,
+	}
+
+	_, err := e.client.ApplicationController.DeleteApplicationUsingDELETE1(req)
+	if err != nil {
+		return errors.Wrap(err, errDeleteFailed)
+	}
+
 	return nil
 }
 
 func (e *external) LateInitialize(cr *v1alpha1.Application, obj *application_controller.GetApplicationUsingGET1OK) { // nolint:gocyclo
 
-	// if cr.Spec.ForProvider.CreationTime != obj.Payload.CreationTime {
-	// 	cr.Spec.ForProvider.CreationTime = obj.Payload.CreationTime
-	// }
+	if cr.Spec.ForProvider.CreationTime == "" {
+		cr.Spec.ForProvider.CreationTime = obj.Payload.CreationTime
+	}
 
-	if cr.Spec.ForProvider.ModifiedBy != obj.Payload.ModifiedBy {
+	if cr.Spec.ForProvider.ModifiedBy == "" {
 		cr.Spec.ForProvider.ModifiedBy = obj.Payload.ModifiedBy
 	}
 
-	if cr.Spec.ForProvider.Enabled != obj.Payload.Enabled {
-		cr.Spec.ForProvider.Enabled = obj.Payload.Enabled
+	if cr.Spec.ForProvider.Enabled == nil {
+		cr.Spec.ForProvider.Enabled = zpaclient.Bool(obj.Payload.Enabled)
 	}
 
-	if cr.Spec.ForProvider.PassiveHealthEnabled != obj.Payload.PassiveHealthEnabled {
-		cr.Spec.ForProvider.PassiveHealthEnabled = obj.Payload.PassiveHealthEnabled
+	if cr.Spec.ForProvider.PassiveHealthEnabled == nil {
+		cr.Spec.ForProvider.PassiveHealthEnabled = zpaclient.Bool(obj.Payload.PassiveHealthEnabled)
 	}
 
-	if cr.Spec.ForProvider.DoubleEncrypt != obj.Payload.DoubleEncrypt {
-		cr.Spec.ForProvider.DoubleEncrypt = obj.Payload.DoubleEncrypt
+	if cr.Spec.ForProvider.DoubleEncrypt == nil {
+		cr.Spec.ForProvider.DoubleEncrypt = zpaclient.Bool(obj.Payload.DoubleEncrypt)
 	}
 
-	if cr.Spec.ForProvider.ConfigSpace != obj.Payload.ConfigSpace {
+	if cr.Spec.ForProvider.ConfigSpace == "" {
 		cr.Spec.ForProvider.ConfigSpace = obj.Payload.ConfigSpace
 	}
 
-	if cr.Spec.ForProvider.BypassType != obj.Payload.BypassType {
+	if cr.Spec.ForProvider.BypassType == "" {
 		cr.Spec.ForProvider.BypassType = obj.Payload.BypassType
 	}
 
-	if cr.Spec.ForProvider.HealthCheckType != obj.Payload.HealthCheckType {
+	if cr.Spec.ForProvider.HealthCheckType == "" {
 		cr.Spec.ForProvider.HealthCheckType = obj.Payload.HealthCheckType
 	}
 
-	if cr.Spec.ForProvider.IcmpAccessType != obj.Payload.IcmpAccessType {
+	if cr.Spec.ForProvider.IcmpAccessType == "" {
 		cr.Spec.ForProvider.IcmpAccessType = obj.Payload.IcmpAccessType
 	}
 
-	if cr.Spec.ForProvider.IsCnameEnabled != obj.Payload.IsCnameEnabled {
-		cr.Spec.ForProvider.IsCnameEnabled = obj.Payload.IsCnameEnabled
+	if cr.Spec.ForProvider.IsCnameEnabled == nil {
+		cr.Spec.ForProvider.IsCnameEnabled = zpaclient.Bool(obj.Payload.IsCnameEnabled)
 	}
 
-	if cr.Spec.ForProvider.IPAnchored != obj.Payload.IPAnchored {
-		cr.Spec.ForProvider.IPAnchored = obj.Payload.IPAnchored
+	if cr.Spec.ForProvider.IPAnchored == nil {
+		cr.Spec.ForProvider.IPAnchored = zpaclient.Bool(obj.Payload.IPAnchored)
 	}
 
-	if cr.Spec.ForProvider.SegmentGroupName != obj.Payload.SegmentGroupName {
+	if cr.Spec.ForProvider.SegmentGroupName == "" {
 		cr.Spec.ForProvider.SegmentGroupName = obj.Payload.SegmentGroupName
 	}
 
