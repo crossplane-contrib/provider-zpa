@@ -18,7 +18,14 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
 	httptransport "github.com/go-openapi/runtime/client"
 
@@ -29,9 +36,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	zpa "github.com/haarchri/zpa-go-client/pkg/client"
-
 	"github.com/haarchri/provider-zpa/apis/v1alpha1"
+
+	zpa "github.com/haarchri/zpa-go-client/pkg/client"
 )
 
 const (
@@ -57,7 +64,7 @@ func GetConfig(ctx context.Context, c client.Client, mg resource.Managed) (*http
 }
 
 // UseProviderConfig to produce a *httptransport.Runtime that can be used to connect to Zscaler ZPA.
-func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed) (*httptransport.Runtime, error) {
+func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed) (*httptransport.Runtime, error) { // nolint:gocyclo
 	pc := &v1alpha1.ProviderConfig{}
 	if err := c.Get(ctx, types.NamespacedName{Name: mg.GetProviderConfigReference().Name}, pc); err != nil {
 		return nil, errors.Wrap(err, errCannotGetProvider)
@@ -68,11 +75,20 @@ func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed
 		return nil, errors.Wrap(err, errCannotTrackProviderConfigUsage)
 	}
 
-	if pc.Spec.Credentials.Source != xpv1.CredentialsSourceSecret {
+	if pc.Spec.ClientID.Source != xpv1.CredentialsSourceSecret {
 		return nil, errors.New(errOnlySecretSourceAllowed)
 	}
 
-	creds, credsErr := extractCredentialsFromSecret(ctx, c, pc.Spec.Credentials.CommonCredentialSelectors)
+	clientID, credsErr := extractCredentialsFromSecret(ctx, c, pc.Spec.ClientID.CommonCredentialSelectors)
+	if credsErr != nil {
+		return nil, errors.Wrap(credsErr, errExtractSecret)
+	}
+
+	if pc.Spec.ClientSecret.Source != xpv1.CredentialsSourceSecret {
+		return nil, errors.New(errOnlySecretSourceAllowed)
+	}
+
+	clientSecret, credsErr := extractCredentialsFromSecret(ctx, c, pc.Spec.ClientSecret.CommonCredentialSelectors)
 	if credsErr != nil {
 		return nil, errors.Wrap(credsErr, errExtractSecret)
 	}
@@ -82,8 +98,40 @@ func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed
 		basepath = "/"
 	}
 
+	/* Authenticate */
+	client := &http.Client{}
+	data := url.Values{}
+	data.Set("client_id", clientID.token)
+	data.Set("client_secret", clientSecret.token)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://"+pc.Spec.Host+"/signin", strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer closeBody(res.Body)
+
+	creds := &v1alpha1.RespCredentials{}
+	err = json.Unmarshal(body, &creds)
+	if err != nil {
+		return nil, err
+	}
+
 	transport := httptransport.New(pc.Spec.Host, basepath, zpa.DefaultSchemes)
-	transport.DefaultAuthentication = httptransport.BearerToken(creds.token)
+	transport.DefaultAuthentication = httptransport.BearerToken(creds.AccessToken)
 
 	// Enable this line to see request and response in console output
 	// transport.SetDebug(true)
@@ -115,4 +163,8 @@ func extractCredentialsFromSecret(ctx context.Context, client client.Client, s x
 	}
 
 	return creds, nil
+}
+
+func closeBody(c io.Closer) {
+	_ = c.Close()
 }

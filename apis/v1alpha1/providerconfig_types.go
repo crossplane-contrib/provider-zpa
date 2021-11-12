@@ -24,8 +24,11 @@ import (
 
 // A ProviderConfigSpec defines the desired state of a ProviderConfig.
 type ProviderConfigSpec struct {
-	// Credentials required to authenticate to ZPA.
-	Credentials ProviderCredentials `json:"credentials"`
+	// ClientID required to authenticate to ZPA.
+	ClientID ProviderCredentials `json:"clientID"`
+
+	// ClientSecret required to authenticate to ZPA.
+	ClientSecret ProviderCredentials `json:"clientSecret"`
 
 	// Host address of the ZPA instance used by the provider
 	// +kubebuilder:validation:Required
@@ -96,4 +99,11 @@ type ProviderConfigUsageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ProviderConfigUsage `json:"items"`
+}
+
+// RespCredentials contains a list of Resp
+type RespCredentials struct {
+	TokenType   string `json:"token_type"`
+	AccessToken string `json:"access_token"`
+	ExpiresIn   string `json:"expires_in"`
 }

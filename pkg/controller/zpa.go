@@ -22,6 +22,7 @@ import (
 
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 
+	"github.com/haarchri/provider-zpa/pkg/controller/application"
 	"github.com/haarchri/provider-zpa/pkg/controller/config"
 )
 
@@ -30,6 +31,7 @@ import (
 func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 	for _, setup := range []func(ctrl.Manager, logging.Logger, workqueue.RateLimiter) error{
 		config.Setup,
+		application.SetupApplication,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err

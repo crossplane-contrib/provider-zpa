@@ -6,7 +6,9 @@ require (
 	github.com/crossplane/crossplane-runtime v0.13.0
 	github.com/crossplane/crossplane-tools v0.0.0-20201201125637-9ddc70edfd0d
 	github.com/go-openapi/runtime v0.20.0
-	github.com/haarchri/zpa-go-client v0.0.1
+	github.com/go-openapi/strfmt v0.20.3
+	github.com/google/go-cmp v0.5.2
+	github.com/haarchri/zpa-go-client v0.0.3
 	github.com/pkg/errors v0.9.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.20.1
