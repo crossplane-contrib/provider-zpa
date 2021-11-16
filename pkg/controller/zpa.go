@@ -22,9 +22,9 @@ import (
 
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 
-	"github.com/haarchri/provider-zpa/pkg/controller/application"
-	"github.com/haarchri/provider-zpa/pkg/controller/config"
-	"github.com/haarchri/provider-zpa/pkg/controller/segment"
+	"github.com/crossplane-contrib/provider-zpa/pkg/controller/application"
+	"github.com/crossplane-contrib/provider-zpa/pkg/controller/config"
+	"github.com/crossplane-contrib/provider-zpa/pkg/controller/segment"
 )
 
 // Setup creates all Cluster API controllers with the supplied logger and adds

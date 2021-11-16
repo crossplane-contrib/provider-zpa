@@ -13,7 +13,7 @@ For getting start with Crossplane setup installation and deployment, see the [of
 
 ### To use provider-zpa
 
-1. Create a new Zscaler ZPA API token, and store it in a K8s secret
+1. Create a new Zscaler ZPA ClientID and ClientSecret, and store it in a K8s secret
 2. Create a new [ProviderConfig](examples/config/zpa-provider-config.yaml) resource with a references to this secret
 
 You are now ready to create resources as described in [examples](examples).
@@ -37,7 +37,7 @@ To generate the CRD YAML files run
 ## Report a Bug
 
 For filing bugs, suggesting improvements, or requesting new features, please
-open an [issue](https://github.com/haarchri/provider-zpa/issues).
+open an [issue](https://github.com/crossplane-contrib/provider-zpa/issues).
 
 ## Contact
 

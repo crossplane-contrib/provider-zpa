@@ -1,4 +1,4 @@
-module github.com/haarchri/provider-zpa
+module github.com/crossplane-contrib/provider-zpa
 
 go 1.16
 
