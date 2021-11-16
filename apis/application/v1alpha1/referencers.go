@@ -16,7 +16,7 @@ package v1alpha1
 import (
 	"context"
 
-	segment "github.com/haarchri/provider-zpa/apis/segment/v1alpha1"
+	segment "github.com/crossplane-contrib/provider-zpa/apis/segment/v1alpha1"
 
 	"github.com/crossplane/crossplane-runtime/pkg/reference"
 	"github.com/pkg/errors"

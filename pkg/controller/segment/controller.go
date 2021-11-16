@@ -39,8 +39,8 @@ import (
 	"github.com/haarchri/zpa-go-client/pkg/client/segment_group_controller"
 	"github.com/haarchri/zpa-go-client/pkg/models"
 
-	v1alpha1 "github.com/haarchri/provider-zpa/apis/segment/v1alpha1"
-	zpaclient "github.com/haarchri/provider-zpa/pkg/client"
+	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/segment/v1alpha1"
+	zpaclient "github.com/crossplane-contrib/provider-zpa/pkg/client"
 )
 
 const (
