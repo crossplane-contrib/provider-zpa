@@ -22,8 +22,8 @@ import (
 // CustomSegmentParameters that are not part of the ZPA API
 type CustomSegmentParameters struct{}
 
-// A SegmentParameters defines desired state of a Segment
-type SegmentParameters struct {
+// SegmentGroupParameters defines desired state of a Segment
+type SegmentGroupParameters struct {
 	CustomSegmentParameters `json:",inline"`
 
 	// config space
@@ -44,41 +44,41 @@ type SegmentParameters struct {
 
 	// CustomerID The unique identifier of the ZPA tenant.
 	// +kubebuilder:validation:Required
-	CustomerID int64 `json:"customerID"`
+	CustomerID string `json:"customerID"`
 }
 
-// A SegmentSpec defines the desired state of a Segment.
-type SegmentSpec struct {
+// A SegmentGroupSpec defines the desired state of a SegmentGroup.
+type SegmentGroupSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       SegmentParameters `json:"forProvider"`
+	ForProvider       SegmentGroupParameters `json:"forProvider"`
 }
 
-// A SegmentStatus represents the status of a Segment.
-type SegmentStatus struct {
+// A SegmentGroupStatus represents the status of a SegmentGroup.
+type SegmentGroupStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
 
-// A Segment is the schema for ZPA Segments API
+// A SegmentGroup is the schema for ZPA SegmentGroups API
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,zpa}
-type Segment struct {
+type SegmentGroup struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SegmentSpec   `json:"spec"`
-	Status SegmentStatus `json:"status,omitempty"`
+	Spec   SegmentGroupSpec   `json:"spec"`
+	Status SegmentGroupStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// SegmentList contains a list of Segment
-type SegmentList struct {
+// SegmentGroupList contains a list of SegmentGroup
+type SegmentGroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Segment `json:"items"`
+	Items           []SegmentGroup `json:"items"`
 }

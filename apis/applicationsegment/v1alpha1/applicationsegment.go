@@ -19,8 +19,8 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
-// CustomApplicationParameters that are not part of the ZPA API
-type CustomApplicationParameters struct {
+// CustomApplicationSegmentParameters that are not part of the ZPA API
+type CustomApplicationSegmentParameters struct {
 	// SegmentGroupIDRef is a reference to a SegmentGroupID so set external ID
 	// +optional
 	SegmentGroupIDRef *xpv1.Reference `json:"segmentGroupIDRef,omitempty"`
@@ -30,9 +30,9 @@ type CustomApplicationParameters struct {
 	SegmentGroupIDSelector *xpv1.Selector `json:"segmentGroupIDSelector,omitempty"`
 }
 
-// A ApplicationParameters defines desired state of a Application
-type ApplicationParameters struct {
-	CustomApplicationParameters `json:",inline"`
+// A ApplicationSegmentParameters defines desired state of a ApplicationSegmentSegment
+type ApplicationSegmentParameters struct {
+	CustomApplicationSegmentParameters `json:",inline"`
 
 	// bypass type
 	// +kubebuilder:validation:Enum=ALWAYS;NEVER;ON_NET
@@ -92,41 +92,41 @@ type ApplicationParameters struct {
 
 	// CustomerID The unique identifier of the ZPA tenant.
 	// +kubebuilder:validation:Required
-	CustomerID int64 `json:"customerID"`
+	CustomerID string `json:"customerID"`
 }
 
-// A ApplicationSpec defines the desired state of a Application.
-type ApplicationSpec struct {
+// A ApplicationSegmentSpec defines the desired state of a ApplicationSegment.
+type ApplicationSegmentSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       ApplicationParameters `json:"forProvider"`
+	ForProvider       ApplicationSegmentParameters `json:"forProvider"`
 }
 
-// A ApplicationStatus represents the status of a Application.
-type ApplicationStatus struct {
+// A ApplicationSegmentStatus represents the status of a ApplicationSegment.
+type ApplicationSegmentStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
 
-// A Application is the schema for ZPA Applications API
+// A ApplicationSegment is the schema for ZPA ApplicationSegments API
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,zpa}
-type Application struct {
+type ApplicationSegment struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ApplicationSpec   `json:"spec"`
-	Status ApplicationStatus `json:"status,omitempty"`
+	Spec   ApplicationSegmentSpec   `json:"spec"`
+	Status ApplicationSegmentStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// ApplicationList contains a list of Application
-type ApplicationList struct {
+// ApplicationSegmentList contains a list of ApplicationSegment
+type ApplicationSegmentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Application `json:"items"`
+	Items           []ApplicationSegment `json:"items"`
 }

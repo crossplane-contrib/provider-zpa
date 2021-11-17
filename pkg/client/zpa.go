@@ -134,7 +134,7 @@ func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed
 	transport.DefaultAuthentication = httptransport.BearerToken(creds.AccessToken)
 
 	// Enable this line to see request and response in console output
-	transport.SetDebug(true)
+	// transport.SetDebug(true)
 
 	return transport, nil
 }

@@ -15,7 +15,6 @@ package application
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
@@ -39,29 +38,29 @@ import (
 	"github.com/haarchri/zpa-go-client/pkg/client/application_controller"
 	"github.com/haarchri/zpa-go-client/pkg/models"
 
-	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/application/v1alpha1"
+	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/applicationsegment/v1alpha1"
 	zpaclient "github.com/crossplane-contrib/provider-zpa/pkg/client"
 )
 
 const (
-	errNotApplication = "managed resource is not an Application custom resource"
-	errCreateFailed   = "cannot create Application"
-	errDescribeFailed = "cannot describe Application"
-	errDeleteFailed   = "cannot delete Application"
+	errNotApplicationSegment = "managed resource is not an ApplicationSegment custom resource"
+	errCreateFailed          = "cannot create ApplicationSegment"
+	errDescribeFailed        = "cannot describe ApplicationSegment"
+	errDeleteFailed          = "cannot delete ApplicationSegment"
 )
 
-// SetupApplication adds a controller that reconciles Applications.
-func SetupApplication(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	name := managed.ControllerName(v1alpha1.ApplicationGroupKind)
+// SetupApplicationSegment adds a controller that reconciles ApplicationSegments.
+func SetupApplicationSegment(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+	name := managed.ControllerName(v1alpha1.ApplicationSegmentGroupKind)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
-			RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
+			RateLimiter: ratelimiter.NewController(rl),
 		}).
-		For(&v1alpha1.Application{}).
+		For(&v1alpha1.ApplicationSegment{}).
 		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.ApplicationGroupVersionKind),
+			resource.ManagedKind(v1alpha1.ApplicationSegmentGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
 			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
@@ -80,9 +79,9 @@ type external struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	_, ok := mg.(*v1alpha1.Application)
+	_, ok := mg.(*v1alpha1.ApplicationSegment)
 	if !ok {
-		return nil, errors.New(errNotApplication)
+		return nil, errors.New(errNotApplicationSegment)
 	}
 
 	cfg, err := zpaclient.GetConfig(ctx, c.kube, mg)
@@ -95,9 +94,9 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mg.(*v1alpha1.Application)
+	cr, ok := mg.(*v1alpha1.ApplicationSegment)
 	if !ok {
-		return managed.ExternalObservation{}, errors.New(errNotApplication)
+		return managed.ExternalObservation{}, errors.New(errNotApplicationSegment)
 	}
 
 	id := meta.GetExternalName(cr)
@@ -108,12 +107,9 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
-	// string to int64
-	applicationID, _ := strconv.ParseInt(id, 10, 64)
-
 	req := &application_controller.GetApplicationUsingGET1Params{
 		Context:       ctx,
-		ApplicationID: applicationID,
+		ApplicationID: id,
 		CustomerID:    cr.Spec.ForProvider.CustomerID,
 	}
 	resp, reqErr := e.client.ApplicationController.GetApplicationUsingGET1(req)
@@ -134,9 +130,9 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.ExternalCreation, error) {
-	cr, ok := mg.(*v1alpha1.Application)
+	cr, ok := mg.(*v1alpha1.ApplicationSegment)
 	if !ok {
-		return managed.ExternalCreation{}, errors.New(errNotApplication)
+		return managed.ExternalCreation{}, errors.New(errNotApplicationSegment)
 	}
 
 	req := &application_controller.AddApplicationUsingPOST1Params{
@@ -181,23 +177,21 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*v1alpha1.Application)
+	cr, ok := mg.(*v1alpha1.ApplicationSegment)
 	if !ok {
-		return errors.New(errNotApplication)
+		return errors.New(errNotApplicationSegment)
 	}
 
 	id := meta.GetExternalName(cr)
 	if id == "" {
-		return errors.New(errNotApplication)
+		return errors.New(errNotApplicationSegment)
 	}
 
-	// string to int64
-	applicationID, _ := strconv.ParseInt(id, 10, 64)
 	forceDeleteApplication := true
 
 	req := &application_controller.DeleteApplicationUsingDELETE1Params{
 		Context:       ctx,
-		ApplicationID: applicationID,
+		ApplicationID: id,
 		CustomerID:    cr.Spec.ForProvider.CustomerID,
 		ForceDelete:   &forceDeleteApplication,
 	}
@@ -210,7 +204,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	return nil
 }
 
-func (e *external) LateInitialize(cr *v1alpha1.Application, obj *application_controller.GetApplicationUsingGET1OK) { // nolint:gocyclo
+func (e *external) LateInitialize(cr *v1alpha1.ApplicationSegment, obj *application_controller.GetApplicationUsingGET1OK) { // nolint:gocyclo
 
 	if cr.Spec.ForProvider.Enabled == nil {
 		cr.Spec.ForProvider.Enabled = zpaclient.Bool(obj.Payload.Enabled)

@@ -16,15 +16,15 @@ package v1alpha1
 import (
 	"context"
 
-	segment "github.com/crossplane-contrib/provider-zpa/apis/segment/v1alpha1"
+	segmentGroup "github.com/crossplane-contrib/provider-zpa/apis/segmentgroup/v1alpha1"
 
 	"github.com/crossplane/crossplane-runtime/pkg/reference"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// ResolveReferences of this Application
-func (mg *Application) ResolveReferences(ctx context.Context, c client.Reader) error {
+// ResolveReferences of this ApplicationSegment
+func (mg *ApplicationSegment) ResolveReferences(ctx context.Context, c client.Reader) error {
 	r := reference.NewAPIResolver(c, mg)
 
 	// Resolve spec.forProvider.segmentGroupID
@@ -32,7 +32,7 @@ func (mg *Application) ResolveReferences(ctx context.Context, c client.Reader) e
 		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.SegmentGroupID),
 		Reference:    mg.Spec.ForProvider.SegmentGroupIDRef,
 		Selector:     mg.Spec.ForProvider.SegmentGroupIDSelector,
-		To:           reference.To{Managed: &segment.Segment{}, List: &segment.SegmentList{}},
+		To:           reference.To{Managed: &segmentGroup.SegmentGroup{}, List: &segmentGroup.SegmentGroupList{}},
 		Extract:      reference.ExternalName(),
 	})
 	if err != nil {

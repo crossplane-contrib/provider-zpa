@@ -11,11 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package segment
+package server
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
@@ -36,39 +35,32 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 
 	zpa "github.com/haarchri/zpa-go-client/pkg/client"
-	"github.com/haarchri/zpa-go-client/pkg/client/segment_group_controller"
+	"github.com/haarchri/zpa-go-client/pkg/client/app_server_controller"
 	"github.com/haarchri/zpa-go-client/pkg/models"
 
-	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/segment/v1alpha1"
+	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/server/v1alpha1"
 	zpaclient "github.com/crossplane-contrib/provider-zpa/pkg/client"
 )
 
 const (
-	errNotSegment     = "managed resource is not an Segment custom resource"
-	errCreateFailed   = "cannot create Segment"
-	errDescribeFailed = "cannot describe Segment"
-	errDeleteFailed   = "cannot delete Segment"
-
-// errUpdateFailed                = "cannot update Segment custom resource"
-// errIsUpToDateFailed            = "isUpToDate failed"
-// errGetSelectors                = "cannot get system selectors"
-// errGetSelectorsInvalidResponse = "get system selectors returned an unexpected response"
-// errCompareSelectors            = "cannot compare selectors"
-// errUpdateSelectors             = "cannotUpdateselectors"
+	errNotServer      = "managed resource is not an Server custom resource"
+	errCreateFailed   = "cannot create Server"
+	errDescribeFailed = "cannot describe Server"
+	errDeleteFailed   = "cannot delete Server"
 )
 
-// SetupSegment adds a controller that reconciles Segments.
-func SetupSegment(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	name := managed.ControllerName(v1alpha1.SegmentGroupKind)
+// SetupServer adds a controller that reconciles Servers.
+func SetupServer(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+	name := managed.ControllerName(v1alpha1.ServerKind)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
-			RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
+			RateLimiter: ratelimiter.NewController(rl),
 		}).
-		For(&v1alpha1.Segment{}).
+		For(&v1alpha1.Server{}).
 		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.SegmentGroupVersionKind),
+			resource.ManagedKind(v1alpha1.ServerGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
 			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
@@ -87,9 +79,9 @@ type external struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	_, ok := mg.(*v1alpha1.Segment)
+	_, ok := mg.(*v1alpha1.Server)
 	if !ok {
-		return nil, errors.New(errNotSegment)
+		return nil, errors.New(errNotServer)
 	}
 
 	cfg, err := zpaclient.GetConfig(ctx, c.kube, mg)
@@ -102,9 +94,9 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mg.(*v1alpha1.Segment)
+	cr, ok := mg.(*v1alpha1.Server)
 	if !ok {
-		return managed.ExternalObservation{}, errors.New(errNotSegment)
+		return managed.ExternalObservation{}, errors.New(errNotServer)
 	}
 
 	id := meta.GetExternalName(cr)
@@ -115,15 +107,12 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
-	// string to int64
-	SegmentID, _ := strconv.ParseInt(id, 10, 64)
-
-	req := &segment_group_controller.GetSegmentGroupUsingGET1Params{
-		Context:        ctx,
-		SegmentGroupID: SegmentID,
-		CustomerID:     cr.Spec.ForProvider.CustomerID,
+	req := &app_server_controller.GetAppServerUsingGET1Params{
+		Context:    ctx,
+		ServerID:   id,
+		CustomerID: cr.Spec.ForProvider.CustomerID,
 	}
-	resp, reqErr := e.client.SegmentGroupController.GetSegmentGroupUsingGET1(req)
+	resp, reqErr := e.client.AppServerController.GetAppServerUsingGET1(req)
 	if reqErr != nil {
 		return managed.ExternalObservation{ResourceExists: false}, errors.Wrap(resource.Ignore(IsNotFound, reqErr), errDescribeFailed)
 	}
@@ -141,23 +130,24 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.ExternalCreation, error) {
-	cr, ok := mg.(*v1alpha1.Segment)
+	cr, ok := mg.(*v1alpha1.Server)
 	if !ok {
-		return managed.ExternalCreation{}, errors.New(errNotSegment)
+		return managed.ExternalCreation{}, errors.New(errNotServer)
 	}
 
-	req := &segment_group_controller.AddSegmentGroupUsingPOST1Params{
+	req := &app_server_controller.AddAppServerUsingPOST1Params{
 		Context:    ctx,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
-		SegmentGroup: &models.SegmentGroup{
+		Server: &models.ApplicationServer{
 			Name:        zpaclient.String(cr.Name),
+			Address:     cr.Spec.ForProvider.Address,
 			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
 			Description: cr.Spec.ForProvider.Description,
 			Enabled:     zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
 		},
 	}
 
-	resp, err := e.client.SegmentGroupController.AddSegmentGroupUsingPOST1(req)
+	resp, err := e.client.AppServerController.AddAppServerUsingPOST1(req)
 	if err != nil {
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
@@ -174,26 +164,23 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*v1alpha1.Segment)
+	cr, ok := mg.(*v1alpha1.Server)
 	if !ok {
-		return errors.New(errNotSegment)
+		return errors.New(errNotServer)
 	}
 
 	id := meta.GetExternalName(cr)
 	if id == "" {
-		return errors.New(errNotSegment)
+		return errors.New(errNotServer)
 	}
 
-	// string to int64
-	SegmentGroupID, _ := strconv.ParseInt(id, 10, 64)
-
-	req := &segment_group_controller.DeleteSegmentGroupUsingDELETE1Params{
-		Context:        ctx,
-		SegmentGroupID: SegmentGroupID,
-		CustomerID:     cr.Spec.ForProvider.CustomerID,
+	req := &app_server_controller.DeleteAppServerUsingDELETE1Params{
+		Context:    ctx,
+		ServerID:   id,
+		CustomerID: cr.Spec.ForProvider.CustomerID,
 	}
 
-	_, err := e.client.SegmentGroupController.DeleteSegmentGroupUsingDELETE1(req)
+	_, err := e.client.AppServerController.DeleteAppServerUsingDELETE1(req)
 	if err != nil {
 		return errors.Wrap(err, errDeleteFailed)
 	}
@@ -201,7 +188,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	return nil
 }
 
-func (e *external) LateInitialize(cr *v1alpha1.Segment, obj *segment_group_controller.GetSegmentGroupUsingGET1OK) { // nolint:gocyclo
+func (e *external) LateInitialize(cr *v1alpha1.Server, obj *app_server_controller.GetAppServerUsingGET1OK) { // nolint:gocyclo
 
 	if cr.Spec.ForProvider.ConfigSpace == "" {
 		cr.Spec.ForProvider.ConfigSpace = obj.Payload.ConfigSpace
