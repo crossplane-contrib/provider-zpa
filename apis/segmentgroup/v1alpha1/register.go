@@ -34,14 +34,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
-// Application type metadata.
+// SegmentGroup type metadata.
 var (
-	ApplicationKind             = reflect.TypeOf(Application{}).Name()
-	ApplicationGroupKind        = schema.GroupKind{Group: Group, Kind: ApplicationKind}.String()
-	ApplicationKindAPIVersion   = ApplicationKind + "." + SchemeGroupVersion.String()
-	ApplicationGroupVersionKind = SchemeGroupVersion.WithKind(ApplicationKind)
+	SegmentGroupKind             = reflect.TypeOf(SegmentGroup{}).Name()
+	SegmentGroupGroupKind        = schema.GroupKind{Group: Group, Kind: SegmentGroupKind}.String()
+	SegmentGroupKindAPIVersion   = SegmentGroupKind + "." + SchemeGroupVersion.String()
+	SegmentGroupGroupVersionKind = SchemeGroupVersion.WithKind(SegmentGroupKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Application{}, &ApplicationList{})
+	SchemeBuilder.Register(&SegmentGroup{}, &SegmentGroupList{})
 }

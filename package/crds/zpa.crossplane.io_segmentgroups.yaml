@@ -4,9 +4,9 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: applications.zpa.crossplane.io
+  name: segmentgroups.zpa.crossplane.io
 spec:
   group: zpa.crossplane.io
   names:
@@ -14,10 +14,10 @@ spec:
     - crossplane
     - managed
     - zpa
-    kind: Application
-    listKind: ApplicationList
-    plural: applications
-    singular: application
+    kind: SegmentGroup
+    listKind: SegmentGroupList
+    plural: segmentgroups
+    singular: segmentgroup
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -33,7 +33,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: A Application is the schema for ZPA Applications API
+        description: A SegmentGroup is the schema for ZPA SegmentGroups API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -48,27 +48,20 @@ spec:
           metadata:
             type: object
           spec:
-            description: A ApplicationSpec defines the desired state of a Application.
+            description: A SegmentGroupSpec defines the desired state of a SegmentGroup.
             properties:
               deletionPolicy:
+                default: Delete
                 description: DeletionPolicy specifies what will happen to the underlying
                   external when this managed resource is deleted - either "Delete"
-                  or "Orphan" the external resource. The "Delete" policy is the default
-                  when no policy is specified.
+                  or "Orphan" the external resource.
                 enum:
                 - Orphan
                 - Delete
                 type: string
               forProvider:
-                description: A ApplicationParameters defines desired state of a Application
+                description: SegmentGroupParameters defines desired state of a Segment
                 properties:
-                  bypassType:
-                    description: bypass type
-                    enum:
-                    - ALWAYS
-                    - NEVER
-                    - ON_NET
-                    type: string
                   configSpace:
                     description: config space
                     enum:
@@ -77,102 +70,25 @@ spec:
                     type: string
                   customerID:
                     description: CustomerID The unique identifier of the ZPA tenant.
-                    format: int64
-                    type: integer
-                  defaultIdleTimeout:
-                    description: default idle timeout
-                    type: string
-                  defaultMaxAge:
-                    description: default max age
                     type: string
                   description:
                     description: description
                     type: string
-                  domainNames:
-                    description: domain names
-                    items:
-                      type: string
-                    type: array
-                  doubleEncrypt:
-                    description: double encrypt
-                    type: boolean
                   enabled:
                     description: enabled
                     type: boolean
-                  healthCheckType:
-                    description: health check type
-                    enum:
-                    - DEFAULT
-                    - NONE
-                    type: string
-                  healthReporting:
-                    description: health reporting
-                    enum:
-                    - NONE
-                    - ON_ACCESS
-                    - CONTINUOUS
-                    type: string
-                  icmpAccessType:
-                    description: icmp access type
-                    enum:
-                    - PING_TRACEROUTING
-                    - PING
-                    - NONE
-                    type: string
-                  ipAnchored:
-                    description: ip anchored
+                  policyMigrated:
+                    description: policy migrated
                     type: boolean
-                  isCnameEnabled:
-                    description: is cname enabled
-                    type: boolean
-                  passiveHealthEnabled:
-                    description: passive health enabled
-                    type: boolean
-                  segmentGroupID:
-                    description: segment group Id
+                  tcpKeepAliveEnabled:
+                    description: tcp keep alive enabled
                     type: string
-                  segmentGroupIDRef:
-                    description: SegmentGroupIDRef is a reference to a SegmentGroupID
-                      so set external ID
-                    properties:
-                      name:
-                        description: Name of the referenced object.
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  segmentGroupIDSelector:
-                    description: SegmentGroupIDSelector selects a reference to a SegmentGroupID
-                      so set external ID
-                    properties:
-                      matchControllerRef:
-                        description: MatchControllerRef ensures an object with the
-                          same controller reference as the selecting object is selected.
-                        type: boolean
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: MatchLabels ensures an object with matching labels
-                          is selected.
-                        type: object
-                    type: object
-                  tcpPortRanges:
-                    description: tcp port ranges
-                    items:
-                      type: string
-                    type: array
-                  udpPortRanges:
-                    description: udp port ranges
-                    items:
-                      type: string
-                    type: array
                 required:
                 - customerID
-                - domainNames
-                - tcpPortRanges
-                - udpPortRanges
                 type: object
               providerConfigRef:
+                default:
+                  name: default
                 description: ProviderConfigReference specifies how the provider that
                   will be used to create, observe, update, and delete this managed
                   resource should be configured.
@@ -215,7 +131,7 @@ spec:
             - forProvider
             type: object
           status:
-            description: A ApplicationStatus represents the status of a Application.
+            description: A SegmentGroupStatus represents the status of a SegmentGroup.
             properties:
               conditions:
                 description: Conditions of the resource.

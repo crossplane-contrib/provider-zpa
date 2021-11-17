@@ -1,10 +1,10 @@
 apiVersion: zpa.crossplane.io/v1alpha1
-kind: Application
+kind: ApplicationSegment
 metadata:
   name: example-application
 spec:
   forProvider:
-    customerID: 999999999999999999
+    customerID: "999999999999999999"
     segmentGroupIDRef:
       name: example-segment
     domainNames:

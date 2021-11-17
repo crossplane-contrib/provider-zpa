@@ -20,58 +20,58 @@ package v1alpha1
 
 import xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 
-// GetCondition of this Application.
-func (mg *Application) GetCondition(ct xpv1.ConditionType) xpv1.Condition {
+// GetCondition of this SegmentGroup.
+func (mg *SegmentGroup) GetCondition(ct xpv1.ConditionType) xpv1.Condition {
 	return mg.Status.GetCondition(ct)
 }
 
-// GetDeletionPolicy of this Application.
-func (mg *Application) GetDeletionPolicy() xpv1.DeletionPolicy {
+// GetDeletionPolicy of this SegmentGroup.
+func (mg *SegmentGroup) GetDeletionPolicy() xpv1.DeletionPolicy {
 	return mg.Spec.DeletionPolicy
 }
 
-// GetProviderConfigReference of this Application.
-func (mg *Application) GetProviderConfigReference() *xpv1.Reference {
+// GetProviderConfigReference of this SegmentGroup.
+func (mg *SegmentGroup) GetProviderConfigReference() *xpv1.Reference {
 	return mg.Spec.ProviderConfigReference
 }
 
 /*
-GetProviderReference of this Application.
+GetProviderReference of this SegmentGroup.
 Deprecated: Use GetProviderConfigReference.
 */
-func (mg *Application) GetProviderReference() *xpv1.Reference {
+func (mg *SegmentGroup) GetProviderReference() *xpv1.Reference {
 	return mg.Spec.ProviderReference
 }
 
-// GetWriteConnectionSecretToReference of this Application.
-func (mg *Application) GetWriteConnectionSecretToReference() *xpv1.SecretReference {
+// GetWriteConnectionSecretToReference of this SegmentGroup.
+func (mg *SegmentGroup) GetWriteConnectionSecretToReference() *xpv1.SecretReference {
 	return mg.Spec.WriteConnectionSecretToReference
 }
 
-// SetConditions of this Application.
-func (mg *Application) SetConditions(c ...xpv1.Condition) {
+// SetConditions of this SegmentGroup.
+func (mg *SegmentGroup) SetConditions(c ...xpv1.Condition) {
 	mg.Status.SetConditions(c...)
 }
 
-// SetDeletionPolicy of this Application.
-func (mg *Application) SetDeletionPolicy(r xpv1.DeletionPolicy) {
+// SetDeletionPolicy of this SegmentGroup.
+func (mg *SegmentGroup) SetDeletionPolicy(r xpv1.DeletionPolicy) {
 	mg.Spec.DeletionPolicy = r
 }
 
-// SetProviderConfigReference of this Application.
-func (mg *Application) SetProviderConfigReference(r *xpv1.Reference) {
+// SetProviderConfigReference of this SegmentGroup.
+func (mg *SegmentGroup) SetProviderConfigReference(r *xpv1.Reference) {
 	mg.Spec.ProviderConfigReference = r
 }
 
 /*
-SetProviderReference of this Application.
+SetProviderReference of this SegmentGroup.
 Deprecated: Use SetProviderConfigReference.
 */
-func (mg *Application) SetProviderReference(r *xpv1.Reference) {
+func (mg *SegmentGroup) SetProviderReference(r *xpv1.Reference) {
 	mg.Spec.ProviderReference = r
 }
 
-// SetWriteConnectionSecretToReference of this Application.
-func (mg *Application) SetWriteConnectionSecretToReference(r *xpv1.SecretReference) {
+// SetWriteConnectionSecretToReference of this SegmentGroup.
+func (mg *SegmentGroup) SetWriteConnectionSecretToReference(r *xpv1.SecretReference) {
 	mg.Spec.WriteConnectionSecretToReference = r
 }

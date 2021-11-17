@@ -20,8 +20,9 @@ package apis
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 
-	applicationv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/application/v1alpha1"
-	segmentv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/segment/v1alpha1"
+	applicationSegmentv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/applicationsegment/v1alpha1"
+	segmentGroupv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/segmentgroup/v1alpha1"
+	serverv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/server/v1alpha1"
 	zpav1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/v1alpha1"
 )
 
@@ -29,8 +30,9 @@ func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
 	AddToSchemes = append(AddToSchemes,
 		zpav1alpha1.SchemeBuilder.AddToScheme,
-		applicationv1alpha1.SchemeBuilder.AddToScheme,
-		segmentv1alpha1.SchemeBuilder.AddToScheme,
+		applicationSegmentv1alpha1.SchemeBuilder.AddToScheme,
+		segmentGroupv1alpha1.SchemeBuilder.AddToScheme,
+		serverv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

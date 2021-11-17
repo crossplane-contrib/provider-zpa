@@ -22,9 +22,10 @@ import (
 
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 
-	"github.com/crossplane-contrib/provider-zpa/pkg/controller/application"
+	applicationSegment "github.com/crossplane-contrib/provider-zpa/pkg/controller/applicationsegment"
 	"github.com/crossplane-contrib/provider-zpa/pkg/controller/config"
-	"github.com/crossplane-contrib/provider-zpa/pkg/controller/segment"
+	segmentGroup "github.com/crossplane-contrib/provider-zpa/pkg/controller/segmentgroup"
+	server "github.com/crossplane-contrib/provider-zpa/pkg/controller/server"
 )
 
 // Setup creates all Cluster API controllers with the supplied logger and adds
@@ -32,8 +33,9 @@ import (
 func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 	for _, setup := range []func(ctrl.Manager, logging.Logger, workqueue.RateLimiter) error{
 		config.Setup,
-		application.SetupApplication,
-		segment.SetupSegment,
+		applicationSegment.SetupApplicationSegment,
+		segmentGroup.SetupSegmentGroup,
+		server.SetupServer,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err
