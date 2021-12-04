@@ -46,6 +46,7 @@ const (
 	errNotApplicationSegment = "managed resource is not an ApplicationSegment custom resource"
 	errCreateFailed          = "cannot create ApplicationSegment"
 	errDescribeFailed        = "cannot describe ApplicationSegment"
+	errUpdateFailed          = "cannot update ApplicationSegment"
 	errDeleteFailed          = "cannot delete ApplicationSegment"
 )
 
@@ -126,7 +127,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	return managed.ExternalObservation{
 		ResourceExists:          true,
-		ResourceUpToDate:        true,
+		ResourceUpToDate:        isUpToDate(&cr.Spec.ForProvider, resp),
 		ResourceLateInitialized: !cmp.Equal(&cr.Spec.ForProvider, currentSpec),
 	}, nil
 }
@@ -175,6 +176,41 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.ExternalUpdate, error) {
+	cr, ok := mg.(*v1alpha1.ApplicationSegment)
+	if !ok {
+		return managed.ExternalUpdate{}, errors.New(errNotApplicationSegment)
+	}
+
+	req := &application_controller.UpdateApplicationV2UsingPUT1Params{
+		Context:       ctx,
+		CustomerID:    cr.Spec.ForProvider.CustomerID,
+		ApplicationID: meta.GetExternalName(cr),
+		Application: &models.ApplicationResource{
+			BypassType:           cr.Spec.ForProvider.BypassType,
+			ConfigSpace:          cr.Spec.ForProvider.ConfigSpace,
+			DefaultIdleTimeout:   cr.Spec.ForProvider.DefaultIdleTimeout,
+			DefaultMaxAge:        cr.Spec.ForProvider.DefaultMaxAge,
+			Description:          cr.Spec.ForProvider.Description,
+			DomainNames:          cr.Spec.ForProvider.DomainNames,
+			DoubleEncrypt:        zpaclient.BoolValue(cr.Spec.ForProvider.DoubleEncrypt),
+			Enabled:              zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			HealthCheckType:      cr.Spec.ForProvider.HealthCheckType,
+			HealthReporting:      cr.Spec.ForProvider.HealthReporting,
+			IcmpAccessType:       cr.Spec.ForProvider.IcmpAccessType,
+			IPAnchored:           zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
+			IsCnameEnabled:       zpaclient.BoolValue(cr.Spec.ForProvider.IsCnameEnabled),
+			Name:                 cr.Name,
+			PassiveHealthEnabled: zpaclient.BoolValue(cr.Spec.ForProvider.PassiveHealthEnabled),
+			SegmentGroupID:       zpaclient.StringValue(cr.Spec.ForProvider.SegmentGroupID),
+			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
+			UDPPortRanges:        cr.Spec.ForProvider.UDPPortRanges,
+		},
+	}
+
+	if _, _, err := e.client.ApplicationController.UpdateApplicationV2UsingPUT1(req); err != nil {
+		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateFailed)
+	}
+
 	return managed.ExternalUpdate{}, nil
 }
 
@@ -244,6 +280,10 @@ func (e *external) LateInitialize(cr *v1alpha1.ApplicationSegment, obj *applicat
 		cr.Spec.ForProvider.IPAnchored = zpaclient.Bool(obj.Payload.IPAnchored)
 	}
 
+	if cr.Spec.ForProvider.HealthReporting == "" {
+		cr.Spec.ForProvider.HealthReporting = obj.Payload.HealthReporting
+	}
+
 }
 
 // generateObservation generates observation for the input object application_controller.GetApplicationUsingGET1OK
@@ -258,4 +298,75 @@ func generateObservation(in *application_controller.GetApplicationUsingGET1OK) v
 	cr.ModifiedTime = obj.ModifiedTime
 
 	return cr
+}
+
+// isUpToDate checks whether there is a change in any of the modifiable fields.
+func isUpToDate(cr *v1alpha1.ApplicationSegmentParameters, gobj *application_controller.GetApplicationUsingGET1OK) bool { // nolint:gocyclo
+	obj := gobj.Payload
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.BypassType), zpaclient.StringToPtr(obj.BypassType)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.ConfigSpace), zpaclient.StringToPtr(obj.ConfigSpace)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.DefaultIdleTimeout), zpaclient.StringToPtr(obj.DefaultIdleTimeout)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.DefaultMaxAge), zpaclient.StringToPtr(obj.DefaultMaxAge)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Description), zpaclient.StringToPtr(obj.Description)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualBool(cr.DoubleEncrypt, zpaclient.Bool(obj.DoubleEncrypt)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualBool(cr.Enabled, zpaclient.Bool(obj.Enabled)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.HealthCheckType), zpaclient.StringToPtr(obj.HealthCheckType)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.HealthReporting), zpaclient.StringToPtr(obj.HealthReporting)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualBool(cr.IPAnchored, zpaclient.Bool(obj.IPAnchored)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.IcmpAccessType), zpaclient.StringToPtr(obj.IcmpAccessType)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualBool(cr.IsCnameEnabled, zpaclient.Bool(obj.IsCnameEnabled)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualBool(cr.PassiveHealthEnabled, zpaclient.Bool(obj.PassiveHealthEnabled)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualStringArrayContent(cr.DomainNames, obj.DomainNames) {
+		return false
+	}
+
+	if !zpaclient.IsEqualStringArrayContent(cr.TCPPortRanges, obj.TCPPortRanges) {
+		return false
+	}
+
+	if !zpaclient.IsEqualStringArrayContent(cr.UDPPortRanges, obj.UDPPortRanges) {
+		return false
+	}
+
+	return true
 }

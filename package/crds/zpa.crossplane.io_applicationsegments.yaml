@@ -170,8 +170,6 @@ spec:
                 required:
                 - customerID
                 - domainNames
-                - tcpPortRanges
-                - udpPortRanges
                 type: object
               providerConfigRef:
                 default:

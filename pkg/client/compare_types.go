@@ -5,6 +5,14 @@ func IsEqualString(s1 *string, s2 *string) bool {
 	return StringValue(s1) == StringValue(s2)
 }
 
+// StringToPtr converts string to *string
+func StringToPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 // IsEqualStringArrayContent determines if two string arrays contain the
 // same elements, regardless of order.
 func IsEqualStringArrayContent(a1 []string, a2 []string) bool {
