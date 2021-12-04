@@ -85,10 +85,10 @@ type ApplicationSegmentParameters struct {
 	SegmentGroupID *string `json:"segmentGroupID,omitempty"`
 
 	// tcp port ranges
-	TCPPortRanges []string `json:"tcpPortRanges"`
+	TCPPortRanges []string `json:"tcpPortRanges,omitempty"`
 
 	// udp port ranges
-	UDPPortRanges []string `json:"udpPortRanges"`
+	UDPPortRanges []string `json:"udpPortRanges,omitempty"`
 
 	// CustomerID The unique identifier of the ZPA tenant.
 	// +kubebuilder:validation:Required
