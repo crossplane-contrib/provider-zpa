@@ -45,6 +45,7 @@ import (
 const (
 	errNotServer      = "managed resource is not an Server custom resource"
 	errCreateFailed   = "cannot create Server"
+	errUpdateFailed   = "connot update Server"
 	errDescribeFailed = "cannot describe Server"
 	errDeleteFailed   = "cannot delete Server"
 )
@@ -126,7 +127,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	return managed.ExternalObservation{
 		ResourceExists:          true,
-		ResourceUpToDate:        true,
+		ResourceUpToDate:        isUpToDate(&cr.Spec.ForProvider, resp),
 		ResourceLateInitialized: !cmp.Equal(&cr.Spec.ForProvider, currentSpec),
 	}, nil
 }
@@ -141,11 +142,12 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		Context:    ctx,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
 		Server: &models.ApplicationServer{
-			Name:        zpaclient.String(cr.Name),
-			Address:     cr.Spec.ForProvider.Address,
-			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
-			Description: cr.Spec.ForProvider.Description,
-			Enabled:     zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			Name:              zpaclient.String(cr.Name),
+			Address:           cr.Spec.ForProvider.Address,
+			ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
+			Description:       cr.Spec.ForProvider.Description,
+			AppServerGroupIds: cr.Spec.ForProvider.AppServerGroupIds,
+			Enabled:           zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
 		},
 	}
 
@@ -162,6 +164,29 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.ExternalUpdate, error) {
+	cr, ok := mg.(*v1alpha1.Server)
+	if !ok {
+		return managed.ExternalUpdate{}, errors.New(errNotServer)
+	}
+
+	req := &app_server_controller.UpdateAppServerUsingPUT1Params{
+		Context:    ctx,
+		CustomerID: cr.Spec.ForProvider.CustomerID,
+		ServerID:   meta.GetExternalName(cr),
+		Server: &models.ApplicationServer{
+			Name:              zpaclient.String(cr.Name),
+			Address:           cr.Spec.ForProvider.Address,
+			ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
+			Description:       cr.Spec.ForProvider.Description,
+			AppServerGroupIds: cr.Spec.ForProvider.AppServerGroupIds,
+			Enabled:           zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+		},
+	}
+
+	if _, _, err := e.client.AppServerController.UpdateAppServerUsingPUT1(req); err != nil {
+		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateFailed)
+	}
+
 	return managed.ExternalUpdate{}, nil
 }
 
@@ -210,4 +235,27 @@ func generateObservation(in *app_server_controller.GetAppServerUsingGET1OK) v1al
 	cr.ModifiedTime = obj.ModifiedTime
 
 	return cr
+}
+
+// isUpToDate checks whether there is a change in any of the modifiable fields.
+func isUpToDate(cr *v1alpha1.ServerParameters, gobj *app_server_controller.GetAppServerUsingGET1OK) bool { // nolint:gocyclo
+	obj := gobj.Payload
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Description), zpaclient.StringToPtr(obj.Description)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.ConfigSpace), zpaclient.StringToPtr(obj.ConfigSpace)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Address), zpaclient.StringToPtr(obj.Address)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualStringArrayContent(cr.AppServerGroupIds, obj.AppServerGroupIds) {
+		return false
+	}
+
+	return true
 }

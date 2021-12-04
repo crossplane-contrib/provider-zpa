@@ -45,6 +45,9 @@ type ServerParameters struct {
 	// CustomerID The unique identifier of the ZPA tenant.
 	// +kubebuilder:validation:Required
 	CustomerID string `json:"customerID"`
+
+	// app server group ids
+	AppServerGroupIds []string `json:"appServerGroupIds,omitempty"`
 }
 
 // A ServerSpec defines the desired state of a Server.
