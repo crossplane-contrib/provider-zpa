@@ -133,6 +133,18 @@ spec:
           status:
             description: A SegmentGroupStatus represents the status of a SegmentGroup.
             properties:
+              atProvider:
+                description: Observation are the observable fields of a SegmentGroup.
+                properties:
+                  creationTime:
+                    type: string
+                  id:
+                    type: string
+                  modifiedBy:
+                    type: string
+                  modifiedTime:
+                    type: string
+                type: object
               conditions:
                 description: Conditions of the resource.
                 items:

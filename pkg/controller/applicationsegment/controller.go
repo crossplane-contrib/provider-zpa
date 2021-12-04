@@ -117,6 +117,8 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{ResourceExists: false}, errors.Wrap(resource.Ignore(IsNotFound, reqErr), errDescribeFailed)
 	}
 
+	cr.Status.AtProvider = generateObservation(resp)
+
 	currentSpec := cr.Spec.ForProvider.DeepCopy()
 	e.LateInitialize(cr, resp)
 
@@ -242,4 +244,18 @@ func (e *external) LateInitialize(cr *v1alpha1.ApplicationSegment, obj *applicat
 		cr.Spec.ForProvider.IPAnchored = zpaclient.Bool(obj.Payload.IPAnchored)
 	}
 
+}
+
+// generateObservation generates observation for the input object application_controller.GetApplicationUsingGET1OK
+func generateObservation(in *application_controller.GetApplicationUsingGET1OK) v1alpha1.Observation {
+	cr := v1alpha1.Observation{}
+
+	obj := in.Payload
+
+	cr.CreationTime = obj.CreationTime
+	cr.ID = obj.ID
+	cr.ModifiedBy = obj.ModifiedBy
+	cr.ModifiedTime = obj.ModifiedTime
+
+	return cr
 }

@@ -220,6 +220,18 @@ spec:
           status:
             description: A ApplicationSegmentStatus represents the status of a ApplicationSegment.
             properties:
+              atProvider:
+                description: Observation are the observable fields of a ApplicationSegment.
+                properties:
+                  creationTime:
+                    type: string
+                  id:
+                    type: string
+                  modifiedBy:
+                    type: string
+                  modifiedTime:
+                    type: string
+                type: object
               conditions:
                 description: Conditions of the resource.
                 items:
