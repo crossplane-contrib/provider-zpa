@@ -104,6 +104,15 @@ type ApplicationSegmentSpec struct {
 // A ApplicationSegmentStatus represents the status of a ApplicationSegment.
 type ApplicationSegmentStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
+	AtProvider          Observation `json:"atProvider,omitempty"`
+}
+
+// Observation are the observable fields of a ApplicationSegment.
+type Observation struct {
+	CreationTime string `json:"creationTime,omitempty"`
+	ModifiedBy   string `json:"modifiedBy,omitempty"`
+	ModifiedTime string `json:"modifiedTime,omitempty"`
+	ID           string `json:"id,omitempty"`
 }
 
 // +kubebuilder:object:root=true
