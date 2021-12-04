@@ -65,6 +65,11 @@ spec:
                   address:
                     description: Domain or IP-Address
                     type: string
+                  appServerGroupIds:
+                    description: app server group ids
+                    items:
+                      type: string
+                    type: array
                   configSpace:
                     description: config space
                     enum:
