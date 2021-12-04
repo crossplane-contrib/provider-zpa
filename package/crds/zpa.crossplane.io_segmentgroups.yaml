@@ -76,15 +76,21 @@ spec:
                     type: string
                   enabled:
                     description: enabled
+                    enum:
+                    - true
                     type: boolean
                   policyMigrated:
                     description: policy migrated
                     type: boolean
                   tcpKeepAliveEnabled:
                     description: tcp keep alive enabled
+                    enum:
+                    - "0"
+                    - "1"
                     type: string
                 required:
                 - customerID
+                - enabled
                 type: object
               providerConfigRef:
                 default:
@@ -144,6 +150,8 @@ spec:
                     type: string
                   modifiedTime:
                     type: string
+                  policyMigrated:
+                    type: boolean
                 type: object
               conditions:
                 description: Conditions of the resource.

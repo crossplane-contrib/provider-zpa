@@ -45,6 +45,7 @@ import (
 const (
 	errNotSegmentGroup = "managed resource is not an SegmentGroup custom resource"
 	errCreateFailed    = "cannot create SegmentGroup"
+	errUpdateFailed    = "cannot update SegmentGroup"
 	errDescribeFailed  = "cannot describe SegmentGroup"
 	errDeleteFailed    = "cannot delete SegmentGroup"
 )
@@ -126,7 +127,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	return managed.ExternalObservation{
 		ResourceExists:          true,
-		ResourceUpToDate:        true,
+		ResourceUpToDate:        isUpToDate(&cr.Spec.ForProvider, resp),
 		ResourceLateInitialized: !cmp.Equal(&cr.Spec.ForProvider, currentSpec),
 	}, nil
 }
@@ -141,10 +142,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		Context:    ctx,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
 		SegmentGroup: &models.SegmentGroup{
-			Name:        zpaclient.String(cr.Name),
-			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
-			Description: cr.Spec.ForProvider.Description,
-			Enabled:     zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			Name:                zpaclient.String(cr.Name),
+			ConfigSpace:         cr.Spec.ForProvider.ConfigSpace,
+			Description:         cr.Spec.ForProvider.Description,
+			Enabled:             zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			TCPKeepAliveEnabled: cr.Spec.ForProvider.TCPKeepAliveEnabled,
 		},
 	}
 
@@ -161,6 +163,30 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.ExternalUpdate, error) {
+	cr, ok := mg.(*v1alpha1.SegmentGroup)
+	if !ok {
+		return managed.ExternalUpdate{}, errors.New(errNotSegmentGroup)
+	}
+
+	req := &segment_group_controller.UpdateSegmentGroupUsingPUT1Params{
+		Context:        ctx,
+		CustomerID:     cr.Spec.ForProvider.CustomerID,
+		SegmentGroupID: meta.GetExternalName(cr),
+		SegmentGroup: &models.SegmentGroup{
+			Name:        zpaclient.String(cr.Name),
+			ID:          meta.GetExternalName(cr),
+			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
+			Description: cr.Spec.ForProvider.Description,
+			// update enable to false is not possible via update in the api
+			Enabled:             zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			TCPKeepAliveEnabled: cr.Spec.ForProvider.TCPKeepAliveEnabled,
+		},
+	}
+
+	if _, _, err := e.client.SegmentGroupController.UpdateSegmentGroupUsingPUT1(req); err != nil {
+		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateFailed)
+	}
+
 	return managed.ExternalUpdate{}, nil
 }
 
@@ -191,8 +217,12 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 func (e *external) LateInitialize(cr *v1alpha1.SegmentGroup, obj *segment_group_controller.GetSegmentGroupUsingGET1OK) { // nolint:gocyclo
 
-	if cr.Spec.ForProvider.ConfigSpace == "" {
+	if cr.Spec.ForProvider.ConfigSpace == "" && obj.Payload.ConfigSpace != "" {
 		cr.Spec.ForProvider.ConfigSpace = obj.Payload.ConfigSpace
+	}
+
+	if cr.Spec.ForProvider.TCPKeepAliveEnabled == "" && obj.Payload.TCPKeepAliveEnabled != "" {
+		cr.Spec.ForProvider.TCPKeepAliveEnabled = obj.Payload.TCPKeepAliveEnabled
 	}
 
 }
@@ -207,6 +237,26 @@ func generateObservation(in *segment_group_controller.GetSegmentGroupUsingGET1OK
 	cr.ID = obj.ID
 	cr.ModifiedBy = obj.ModifiedBy
 	cr.ModifiedTime = obj.ModifiedTime
+	cr.PolicyMigrated = obj.PolicyMigrated
 
 	return cr
+}
+
+// isUpToDate checks whether there is a change in any of the modifiable fields.
+func isUpToDate(cr *v1alpha1.SegmentGroupParameters, gobj *segment_group_controller.GetSegmentGroupUsingGET1OK) bool { // nolint:gocyclo
+	obj := gobj.Payload
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Description), zpaclient.StringToPtr(obj.Description)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.ConfigSpace), zpaclient.StringToPtr(obj.ConfigSpace)) {
+		return false
+	}
+
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.TCPKeepAliveEnabled), zpaclient.StringToPtr(obj.TCPKeepAliveEnabled)) {
+		return false
+	}
+
+	return true
 }

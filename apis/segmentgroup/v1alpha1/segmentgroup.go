@@ -34,12 +34,14 @@ type SegmentGroupParameters struct {
 	Description string `json:"description,omitempty"`
 
 	// enabled
-	Enabled *bool `json:"enabled,omitempty"`
+	// +kubebuilder:validation:Enum=true
+	Enabled *bool `json:"enabled"`
 
 	// policy migrated
 	PolicyMigrated *bool `json:"policyMigrated,omitempty"`
 
 	// tcp keep alive enabled
+	// +kubebuilder:validation:Enum="0";"1"
 	TCPKeepAliveEnabled string `json:"tcpKeepAliveEnabled,omitempty"`
 
 	// CustomerID The unique identifier of the ZPA tenant.
@@ -61,10 +63,11 @@ type SegmentGroupStatus struct {
 
 // Observation are the observable fields of a SegmentGroup.
 type Observation struct {
-	CreationTime string `json:"creationTime,omitempty"`
-	ModifiedBy   string `json:"modifiedBy,omitempty"`
-	ModifiedTime string `json:"modifiedTime,omitempty"`
-	ID           string `json:"id,omitempty"`
+	CreationTime   string `json:"creationTime,omitempty"`
+	ModifiedBy     string `json:"modifiedBy,omitempty"`
+	ModifiedTime   string `json:"modifiedTime,omitempty"`
+	ID             string `json:"id,omitempty"`
+	PolicyMigrated bool   `json:"policyMigrated,omitempty"`
 }
 
 // +kubebuilder:object:root=true
