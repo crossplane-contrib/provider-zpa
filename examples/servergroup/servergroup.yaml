@@ -1,0 +1,13 @@
+apiVersion: zpa.crossplane.io/v1alpha1
+kind: ServerGroup
+metadata:
+  name: example-servergroup
+spec:
+  forProvider:
+    customerID: "999999999999999999"
+    enabled: true
+    dynamicDiscovery: false
+    appConnectorGroups:
+      - "999999999999999001"
+  providerConfigRef:
+    name: zpa-provider

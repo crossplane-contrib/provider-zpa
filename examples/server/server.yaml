@@ -6,6 +6,9 @@ spec:
   forProvider:
     customerID: "999999999999999999"
     address: "8.8.8.8"
+    # you can only use appServerGroupIdsRefs if appServerGroup is setup with dynamicDiscovery: false
+    appServerGroupIdsRefs:
+      - name: example-servergroup
     enabled: true
   providerConfigRef:
     name: zpa-provider

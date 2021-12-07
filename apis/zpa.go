@@ -23,6 +23,7 @@ import (
 	applicationSegmentv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/applicationsegment/v1alpha1"
 	segmentGroupv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/segmentgroup/v1alpha1"
 	serverv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/server/v1alpha1"
+	serverGroupv1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/servergroup/v1alpha1"
 	zpav1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/v1alpha1"
 )
 
@@ -33,6 +34,7 @@ func init() {
 		applicationSegmentv1alpha1.SchemeBuilder.AddToScheme,
 		segmentGroupv1alpha1.SchemeBuilder.AddToScheme,
 		serverv1alpha1.SchemeBuilder.AddToScheme,
+		serverGroupv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

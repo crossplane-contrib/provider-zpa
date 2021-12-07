@@ -387,8 +387,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
-github.com/haarchri/zpa-go-client v0.0.9 h1:SkeuH8NPGkY7/ge/59x956Ecuw0e31/jA3QOJBd8tzM=
-github.com/haarchri/zpa-go-client v0.0.9/go.mod h1:L6+gIEYGZELS3v0ISZwR/lMPsIiUIWTycFv2vwvJwHA=
+github.com/haarchri/zpa-go-client v0.0.11 h1:9T64tPlv77Y8y77QSOD6gdLqARqzR02lrv4/vGhRDeo=
+github.com/haarchri/zpa-go-client v0.0.11/go.mod h1:L6+gIEYGZELS3v0ISZwR/lMPsIiUIWTycFv2vwvJwHA=
 github.com/hashicorp/consul/api v1.1.0/go.mod h1:VmuI/Lkw1nC05EYQWNKwWGbkg+FbDBtguAZLlVdkD9Q=
 github.com/hashicorp/consul/sdk v0.1.1/go.mod h1:VKf9jXwCTEY1QZP2MOLRhb5i/I/ssyNV1vwHyQBF0x8=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
