@@ -19,58 +19,47 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
-// CustomServerParameters that are not part of the ZPA API
-type CustomServerParameters struct {
-	// AppServerGroupIdsRef is a reference to a AppServerGroupIds so set external ID
-	// +optional
-	AppServerGroupIdsRefs []xpv1.Reference `json:"appServerGroupIdsRefs,omitempty"`
+// A ServerGroupParameters defines desired state of a ServerSegment
+type ServerGroupParameters struct {
 
-	// AppServerGroupIdsSelector selects a reference to a AppServerGroupIds so set external ID
-	// +optional
-	AppServerGroupIdsSelector *xpv1.Selector `json:"appServerGroupIdsSelector,omitempty"`
-}
+	// enabled
+	Enabled *bool `json:"enabled,omitempty"`
 
-// A ServerParameters defines desired state of a ServerSegment
-type ServerParameters struct {
-	CustomServerParameters `json:",inline"`
+	// description
+	Description string `json:"description,omitempty"`
+
+	// ip anchored
+	IPAnchored *bool `json:"ipAnchored,omitempty"`
 
 	// config space
 	// +kubebuilder:validation:Enum=DEFAULT;SIEM
 	ConfigSpace string `json:"configSpace,omitempty"`
 
-	// description
-	Description string `json:"description,omitempty"`
+	// Defaults to false.
+	DynamicDiscovery bool `json:"dynamicDiscovery"`
 
-	// dynamic discovery
-	DynamicDiscovery *bool `json:"dynamicDiscovery,omitempty"`
-
-	// enabled
-	Enabled *bool `json:"enabled,omitempty"`
-
-	// Domain or IP-Address
-	Address string `json:"address,omitempty"`
+	// app connector groups
+	// +required
+	AppConnectorGroups []string `json:"appConnectorGroups"`
 
 	// CustomerID The unique identifier of the ZPA tenant.
 	// +kubebuilder:validation:Required
 	CustomerID string `json:"customerID"`
-
-	// app server group ids
-	AppServerGroupIds []string `json:"appServerGroupIds,omitempty"`
 }
 
-// A ServerSpec defines the desired state of a Server.
-type ServerSpec struct {
+// A ServerGroupSpec defines the desired state of a ServerGroup.
+type ServerGroupSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       ServerParameters `json:"forProvider"`
+	ForProvider       ServerGroupParameters `json:"forProvider"`
 }
 
-// A ServerStatus represents the status of a Server.
-type ServerStatus struct {
+// A ServerGroupStatus represents the status of a ServerGroup.
+type ServerGroupStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          Observation `json:"atProvider,omitempty"`
 }
 
-// Observation are the observable fields of a Server.
+// Observation are the observable fields of a ServerGroup.
 type Observation struct {
 	CreationTime string `json:"creationTime,omitempty"`
 	ModifiedBy   string `json:"modifiedBy,omitempty"`
@@ -80,25 +69,25 @@ type Observation struct {
 
 // +kubebuilder:object:root=true
 
-// A Server is the schema for ZPA Servers API
+// A ServerGroup is the schema for ZPA ServerGroups API
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,zpa}
-type Server struct {
+type ServerGroup struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ServerSpec   `json:"spec"`
-	Status ServerStatus `json:"status,omitempty"`
+	Spec   ServerGroupSpec   `json:"spec"`
+	Status ServerGroupStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// ServerList contains a list of Server
-type ServerList struct {
+// ServerGroupList contains a list of ServerGroup
+type ServerGroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Server `json:"items"`
+	Items           []ServerGroup `json:"items"`
 }

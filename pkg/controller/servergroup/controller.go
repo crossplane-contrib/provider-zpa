@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package server
+package servergroup
 
 import (
 	"context"
@@ -35,33 +35,36 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 
 	zpa "github.com/haarchri/zpa-go-client/pkg/client"
-	"github.com/haarchri/zpa-go-client/pkg/client/app_server_controller"
+	"github.com/haarchri/zpa-go-client/pkg/client/connector_group_controller"
+	"github.com/haarchri/zpa-go-client/pkg/client/server_group_controller"
 	"github.com/haarchri/zpa-go-client/pkg/models"
 
-	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/server/v1alpha1"
+	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/servergroup/v1alpha1"
 	zpaclient "github.com/crossplane-contrib/provider-zpa/pkg/client"
 )
 
 const (
-	errNotServer      = "managed resource is not an Server custom resource"
-	errCreateFailed   = "cannot create Server"
-	errUpdateFailed   = "connot update Server"
-	errDescribeFailed = "cannot describe Server"
-	errDeleteFailed   = "cannot delete Server"
+	errNotServer                    = "managed resource is not an Server custom resource"
+	errCreateConnectorGroupNotFound = "cannot find needed ConnectorGroup create failed"
+	errUpdateConnectorGroupNotFound = "cannot find needed ConnectorGroup update failed"
+	errCreateFailed                 = "cannot create Server"
+	errUpdateFailed                 = "connot update Server"
+	errDescribeFailed               = "cannot describe Server"
+	errDeleteFailed                 = "cannot delete Server"
 )
 
-// SetupServer adds a controller that reconciles Servers.
-func SetupServer(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	name := managed.ControllerName(v1alpha1.ServerKind)
+// SetupServerGroup adds a controller that reconciles Servers.
+func SetupServerGroup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+	name := managed.ControllerName(v1alpha1.ServerGroupKind)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
 			RateLimiter: ratelimiter.NewController(rl),
 		}).
-		For(&v1alpha1.Server{}).
+		For(&v1alpha1.ServerGroup{}).
 		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.ServerGroupVersionKind),
+			resource.ManagedKind(v1alpha1.ServerGroupGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
 			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
@@ -80,7 +83,7 @@ type external struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	_, ok := mg.(*v1alpha1.Server)
+	_, ok := mg.(*v1alpha1.ServerGroup)
 	if !ok {
 		return nil, errors.New(errNotServer)
 	}
@@ -95,7 +98,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mg.(*v1alpha1.Server)
+	cr, ok := mg.(*v1alpha1.ServerGroup)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errNotServer)
 	}
@@ -108,12 +111,12 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
-	req := &app_server_controller.GetAppServerUsingGET1Params{
+	req := &server_group_controller.GetServerGroupUsingGET1Params{
 		Context:    ctx,
-		ServerID:   id,
+		GroupID:    id,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
 	}
-	resp, reqErr := e.client.AppServerController.GetAppServerUsingGET1(req)
+	resp, reqErr := e.client.ServerGroupController.GetServerGroupUsingGET1(req)
 	if reqErr != nil {
 		return managed.ExternalObservation{ResourceExists: false}, errors.Wrap(resource.Ignore(IsNotFound, reqErr), errDescribeFailed)
 	}
@@ -133,25 +136,46 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.ExternalCreation, error) {
-	cr, ok := mg.(*v1alpha1.Server)
+	cr, ok := mg.(*v1alpha1.ServerGroup)
 	if !ok {
 		return managed.ExternalCreation{}, errors.New(errNotServer)
 	}
 
-	req := &app_server_controller.AddAppServerUsingPOST1Params{
+	req := &server_group_controller.AddAppServerGroupUsingPOST1Params{
 		Context:    ctx,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
-		Server: &models.ApplicationServer{
-			Name:              zpaclient.String(cr.Name),
-			Address:           cr.Spec.ForProvider.Address,
-			ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
-			Description:       cr.Spec.ForProvider.Description,
-			AppServerGroupIds: cr.Spec.ForProvider.AppServerGroupIds,
-			Enabled:           zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+		Group: &models.ServerGroupDTO{
+			Name:             zpaclient.StringValue(&cr.Name),
+			ConfigSpace:      cr.Spec.ForProvider.ConfigSpace,
+			Description:      cr.Spec.ForProvider.Description,
+			Enabled:          zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			DynamicDiscovery: cr.Spec.ForProvider.DynamicDiscovery,
+			IPAnchored:       zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
 		},
 	}
 
-	resp, err := e.client.AppServerController.AddAppServerUsingPOST1(req)
+	for i := range cr.Spec.ForProvider.AppConnectorGroups {
+
+		// we need required AppConnectorGroupName
+		connectorreq := &connector_group_controller.GetAppConnectorGroupUsingGET1Params{
+			Context:             ctx,
+			CustomerID:          cr.Spec.ForProvider.CustomerID,
+			AppConnectorGroupID: cr.Spec.ForProvider.AppConnectorGroups[i],
+		}
+		connectorresp, err := e.client.ConnectorGroupController.GetAppConnectorGroupUsingGET1(connectorreq)
+		if err != nil {
+			return managed.ExternalCreation{}, errors.Wrap(err, errCreateConnectorGroupNotFound)
+		}
+
+		req.Group.AppConnectorGroups = append(
+			req.Group.AppConnectorGroups,
+			&models.AppConnectorGroup{
+				Name: connectorresp.Payload.Name,
+				ID:   cr.Spec.ForProvider.AppConnectorGroups[i],
+			})
+	}
+
+	resp, err := e.client.ServerGroupController.AddAppServerGroupUsingPOST1(req)
 	if err != nil {
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
@@ -164,31 +188,46 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.ExternalUpdate, error) {
-	cr, ok := mg.(*v1alpha1.Server)
+	cr, ok := mg.(*v1alpha1.ServerGroup)
 	if !ok {
 		return managed.ExternalUpdate{}, errors.New(errNotServer)
 	}
 
-	req := &app_server_controller.UpdateAppServerUsingPUT1Params{
+	req := &server_group_controller.UpdateAppServerGroupUsingPUT1Params{
 		Context:    ctx,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
-		ServerID:   meta.GetExternalName(cr),
-		Server: &models.ApplicationServer{
-			Name:        zpaclient.String(cr.Name),
-			Address:     cr.Spec.ForProvider.Address,
-			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
-			Description: cr.Spec.ForProvider.Description,
-			Enabled:     zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+		GroupID:    meta.GetExternalName(cr),
+		Group: &models.ServerGroupDTO{
+			Name:             zpaclient.StringValue(&cr.Name),
+			ConfigSpace:      cr.Spec.ForProvider.ConfigSpace,
+			Description:      cr.Spec.ForProvider.Description,
+			Enabled:          zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
+			DynamicDiscovery: cr.Spec.ForProvider.DynamicDiscovery,
+			IPAnchored:       zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
 		},
 	}
 
-	if len(cr.Spec.ForProvider.AppServerGroupIds) > 0 {
-		req.Server.AppServerGroupIds = cr.Spec.ForProvider.AppServerGroupIds
-	} else {
-		req.Server.AppServerGroupIds = make([]string, 0)
+	for i := range cr.Spec.ForProvider.AppConnectorGroups {
+		// we need required AppConnectorGroupName
+		connectorreq := &connector_group_controller.GetAppConnectorGroupUsingGET1Params{
+			Context:             ctx,
+			CustomerID:          cr.Spec.ForProvider.CustomerID,
+			AppConnectorGroupID: cr.Spec.ForProvider.AppConnectorGroups[i],
+		}
+		connectorresp, err := e.client.ConnectorGroupController.GetAppConnectorGroupUsingGET1(connectorreq)
+		if err != nil {
+			return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateConnectorGroupNotFound)
+		}
+
+		req.Group.AppConnectorGroups = append(
+			req.Group.AppConnectorGroups,
+			&models.AppConnectorGroup{
+				Name: connectorresp.Payload.Name,
+				ID:   cr.Spec.ForProvider.AppConnectorGroups[i],
+			})
 	}
 
-	if _, _, err := e.client.AppServerController.UpdateAppServerUsingPUT1(req); err != nil {
+	if _, _, err := e.client.ServerGroupController.UpdateAppServerGroupUsingPUT1(req); err != nil {
 		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateFailed)
 	}
 
@@ -196,7 +235,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*v1alpha1.Server)
+	cr, ok := mg.(*v1alpha1.ServerGroup)
 	if !ok {
 		return errors.New(errNotServer)
 	}
@@ -206,35 +245,13 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotServer)
 	}
 
-	// Remove the reference to this server from server groups.
-	if len(cr.Spec.ForProvider.AppServerGroupIds) != 0 {
-		upreq := &app_server_controller.UpdateAppServerUsingPUT1Params{
-			Context:    ctx,
-			CustomerID: cr.Spec.ForProvider.CustomerID,
-			ServerID:   meta.GetExternalName(cr),
-			Server: &models.ApplicationServer{
-				Name:              zpaclient.String(cr.Name),
-				Address:           cr.Spec.ForProvider.Address,
-				ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
-				Description:       cr.Spec.ForProvider.Description,
-				AppServerGroupIds: make([]string, 0),
-				Enabled:           zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
-			},
-		}
-
-		if _, _, err := e.client.AppServerController.UpdateAppServerUsingPUT1(upreq); err != nil {
-			return errors.Wrap(err, errUpdateFailed)
-		}
-	}
-
-	// Delete Server finally
-	req := &app_server_controller.DeleteAppServerUsingDELETE1Params{
+	req := &server_group_controller.DeleteAppServerGroupUsingDELETE1Params{
 		Context:    ctx,
-		ServerID:   id,
+		GroupID:    id,
 		CustomerID: cr.Spec.ForProvider.CustomerID,
 	}
 
-	_, err := e.client.AppServerController.DeleteAppServerUsingDELETE1(req)
+	_, err := e.client.ServerGroupController.DeleteAppServerGroupUsingDELETE1(req)
 	if err != nil {
 		return errors.Wrap(err, errDeleteFailed)
 	}
@@ -242,16 +259,20 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	return nil
 }
 
-func (e *external) LateInitialize(cr *v1alpha1.Server, obj *app_server_controller.GetAppServerUsingGET1OK) { // nolint:gocyclo
+func (e *external) LateInitialize(cr *v1alpha1.ServerGroup, obj *server_group_controller.GetServerGroupUsingGET1OK) { // nolint:gocyclo
 
-	if cr.Spec.ForProvider.ConfigSpace == "" {
+	if cr.Spec.ForProvider.ConfigSpace == "" && obj.Payload.ConfigSpace != "" {
 		cr.Spec.ForProvider.ConfigSpace = obj.Payload.ConfigSpace
+	}
+
+	if cr.Spec.ForProvider.IPAnchored == nil && zpaclient.Bool(obj.Payload.IPAnchored) != nil {
+		cr.Spec.ForProvider.IPAnchored = zpaclient.Bool(obj.Payload.IPAnchored)
 	}
 
 }
 
-// generateObservation generates observation for the input object app_server_controller.GetAppServerUsingGET1OK
-func generateObservation(in *app_server_controller.GetAppServerUsingGET1OK) v1alpha1.Observation {
+// generateObservation generates observation for the input object server_group_controller.GetServerGroupUsingGET1OK
+func generateObservation(in *server_group_controller.GetServerGroupUsingGET1OK) v1alpha1.Observation {
 	cr := v1alpha1.Observation{}
 
 	obj := in.Payload
@@ -265,7 +286,7 @@ func generateObservation(in *app_server_controller.GetAppServerUsingGET1OK) v1al
 }
 
 // isUpToDate checks whether there is a change in any of the modifiable fields.
-func isUpToDate(cr *v1alpha1.ServerParameters, gobj *app_server_controller.GetAppServerUsingGET1OK) bool { // nolint:gocyclo
+func isUpToDate(cr *v1alpha1.ServerGroupParameters, gobj *server_group_controller.GetServerGroupUsingGET1OK) bool { // nolint:gocyclo
 	obj := gobj.Payload
 
 	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Description), zpaclient.StringToPtr(obj.Description)) {
@@ -276,11 +297,11 @@ func isUpToDate(cr *v1alpha1.ServerParameters, gobj *app_server_controller.GetAp
 		return false
 	}
 
-	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Address), zpaclient.StringToPtr(obj.Address)) {
+	if !zpaclient.IsEqualBool(cr.IPAnchored, zpaclient.Bool(obj.IPAnchored)) {
 		return false
 	}
 
-	if !zpaclient.IsEqualStringArrayContent(cr.AppServerGroupIds, obj.AppServerGroupIds) {
+	if !zpaclient.IsEqualBool(zpaclient.Bool(cr.DynamicDiscovery), zpaclient.Bool(obj.DynamicDiscovery)) {
 		return false
 	}
 

@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: servers.zpa.crossplane.io
+  name: servergroups.zpa.crossplane.io
 spec:
   group: zpa.crossplane.io
   names:
@@ -14,10 +14,10 @@ spec:
     - crossplane
     - managed
     - zpa
-    kind: Server
-    listKind: ServerList
-    plural: servers
-    singular: server
+    kind: ServerGroup
+    listKind: ServerGroupList
+    plural: servergroups
+    singular: servergroup
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -33,7 +33,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: A Server is the schema for ZPA Servers API
+        description: A ServerGroup is the schema for ZPA ServerGroups API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -48,7 +48,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: A ServerSpec defines the desired state of a Server.
+            description: A ServerGroupSpec defines the desired state of a ServerGroup.
             properties:
               deletionPolicy:
                 default: Delete
@@ -60,44 +60,13 @@ spec:
                 - Delete
                 type: string
               forProvider:
-                description: A ServerParameters defines desired state of a ServerSegment
+                description: A ServerGroupParameters defines desired state of a ServerSegment
                 properties:
-                  address:
-                    description: Domain or IP-Address
-                    type: string
-                  appServerGroupIds:
-                    description: app server group ids
+                  appConnectorGroups:
+                    description: app connector groups
                     items:
                       type: string
                     type: array
-                  appServerGroupIdsRefs:
-                    description: AppServerGroupIdsRef is a reference to a AppServerGroupIds
-                      so set external ID
-                    items:
-                      description: A Reference to a named object.
-                      properties:
-                        name:
-                          description: Name of the referenced object.
-                          type: string
-                      required:
-                      - name
-                      type: object
-                    type: array
-                  appServerGroupIdsSelector:
-                    description: AppServerGroupIdsSelector selects a reference to
-                      a AppServerGroupIds so set external ID
-                    properties:
-                      matchControllerRef:
-                        description: MatchControllerRef ensures an object with the
-                          same controller reference as the selecting object is selected.
-                        type: boolean
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: MatchLabels ensures an object with matching labels
-                          is selected.
-                        type: object
-                    type: object
                   configSpace:
                     description: config space
                     enum:
@@ -111,13 +80,18 @@ spec:
                     description: description
                     type: string
                   dynamicDiscovery:
-                    description: dynamic discovery
+                    description: Defaults to false.
                     type: boolean
                   enabled:
                     description: enabled
                     type: boolean
+                  ipAnchored:
+                    description: ip anchored
+                    type: boolean
                 required:
+                - appConnectorGroups
                 - customerID
+                - dynamicDiscovery
                 type: object
               providerConfigRef:
                 default:
@@ -164,10 +138,10 @@ spec:
             - forProvider
             type: object
           status:
-            description: A ServerStatus represents the status of a Server.
+            description: A ServerGroupStatus represents the status of a ServerGroup.
             properties:
               atProvider:
-                description: Observation are the observable fields of a Server.
+                description: Observation are the observable fields of a ServerGroup.
                 properties:
                   creationTime:
                     type: string
