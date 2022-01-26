@@ -51,7 +51,7 @@ Please use the following to reach members of the community:
 
 ## Governance and Owners
 
-provider-aws is run according to the same
+provider-zpa is run according to the same
 [Governance](https://github.com/crossplane/crossplane/blob/master/GOVERNANCE.md)
 and [Ownership](https://github.com/crossplane/crossplane/blob/master/OWNERS.md)
 structure as the core Crossplane project.
