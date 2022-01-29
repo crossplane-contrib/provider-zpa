@@ -63,7 +63,7 @@ func SetupServer(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) e
 		Complete(managed.NewReconciler(mgr,
 			resource.ManagedKind(v1alpha1.ServerGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
-			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
+			managed.WithInitializers(),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
 			managed.WithLogger(l.WithValues("controller", name)),
 			managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
@@ -108,10 +108,11 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &app_server_controller.GetAppServerUsingGET1Params{
 		Context:    ctx,
 		ServerID:   id,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 	}
 	resp, reqErr := e.client.AppServerController.GetAppServerUsingGET1(req)
 	if reqErr != nil {
@@ -138,11 +139,12 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.New(errNotServer)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &app_server_controller.AddAppServerUsingPOST1Params{
 		Context:    ctx,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 		Server: &models.ApplicationServer{
-			Name:              zpaclient.String(cr.Name),
+			Name:              cr.Spec.ForProvider.Name,
 			Address:           cr.Spec.ForProvider.Address,
 			ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
 			Description:       cr.Spec.ForProvider.Description,
@@ -156,7 +158,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
 
-	meta.SetExternalName(cr, *zpaclient.String(resp.Payload.ID))
+	meta.SetExternalName(cr, resp.Payload.ID)
 	return managed.ExternalCreation{
 		ExternalNameAssigned: true,
 	}, nil
@@ -169,12 +171,13 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotServer)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &app_server_controller.UpdateAppServerUsingPUT1Params{
 		Context:    ctx,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 		ServerID:   meta.GetExternalName(cr),
 		Server: &models.ApplicationServer{
-			Name:        zpaclient.String(cr.Name),
+			Name:        cr.Spec.ForProvider.Name,
 			Address:     cr.Spec.ForProvider.Address,
 			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
 			Description: cr.Spec.ForProvider.Description,
@@ -206,14 +209,15 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotServer)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	// Remove the reference to this server from server groups.
 	if len(cr.Spec.ForProvider.AppServerGroupIds) != 0 {
 		upreq := &app_server_controller.UpdateAppServerUsingPUT1Params{
 			Context:    ctx,
-			CustomerID: cr.Spec.ForProvider.CustomerID,
+			CustomerID: customerID,
 			ServerID:   meta.GetExternalName(cr),
 			Server: &models.ApplicationServer{
-				Name:              zpaclient.String(cr.Name),
+				Name:              cr.Spec.ForProvider.Name,
 				Address:           cr.Spec.ForProvider.Address,
 				ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
 				Description:       cr.Spec.ForProvider.Description,
@@ -231,7 +235,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	req := &app_server_controller.DeleteAppServerUsingDELETE1Params{
 		Context:    ctx,
 		ServerID:   id,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 	}
 
 	_, err := e.client.AppServerController.DeleteAppServerUsingDELETE1(req)

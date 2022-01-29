@@ -104,9 +104,6 @@ spec:
                     - DEFAULT
                     - SIEM
                     type: string
-                  customerID:
-                    description: CustomerID The unique identifier of the ZPA tenant.
-                    type: string
                   description:
                     description: description
                     type: string
@@ -116,8 +113,10 @@ spec:
                   enabled:
                     description: enabled
                     type: boolean
+                  name:
+                    type: string
                 required:
-                - customerID
+                - name
                 type: object
               providerConfigRef:
                 default:

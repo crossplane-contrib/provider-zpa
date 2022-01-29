@@ -50,9 +50,8 @@ type ServerParameters struct {
 	// Domain or IP-Address
 	Address string `json:"address,omitempty"`
 
-	// CustomerID The unique identifier of the ZPA tenant.
 	// +kubebuilder:validation:Required
-	CustomerID string `json:"customerID"`
+	Name *string `json:"name"`
 
 	// app server group ids
 	AppServerGroupIds []string `json:"appServerGroupIds,omitempty"`

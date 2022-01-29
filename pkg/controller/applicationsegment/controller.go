@@ -63,7 +63,7 @@ func SetupApplicationSegment(mgr ctrl.Manager, l logging.Logger, rl workqueue.Ra
 		Complete(managed.NewReconciler(mgr,
 			resource.ManagedKind(v1alpha1.ApplicationSegmentGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
-			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
+			managed.WithInitializers(),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
 			managed.WithLogger(l.WithValues("controller", name)),
 			managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
@@ -108,10 +108,11 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &application_controller.GetApplicationUsingGET1Params{
 		Context:       ctx,
 		ApplicationID: id,
-		CustomerID:    cr.Spec.ForProvider.CustomerID,
+		CustomerID:    customerID,
 	}
 	resp, reqErr := e.client.ApplicationController.GetApplicationUsingGET1(req)
 	if reqErr != nil {
@@ -138,9 +139,10 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.New(errNotApplicationSegment)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &application_controller.AddApplicationUsingPOST1Params{
 		Context:    ctx,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 		Application: &models.ApplicationResource{
 			BypassType:           cr.Spec.ForProvider.BypassType,
 			ConfigSpace:          cr.Spec.ForProvider.ConfigSpace,
@@ -155,7 +157,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 			IcmpAccessType:       cr.Spec.ForProvider.IcmpAccessType,
 			IPAnchored:           zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
 			IsCnameEnabled:       zpaclient.BoolValue(cr.Spec.ForProvider.IsCnameEnabled),
-			Name:                 cr.Name,
+			Name:                 cr.Spec.ForProvider.Name,
 			PassiveHealthEnabled: zpaclient.BoolValue(cr.Spec.ForProvider.PassiveHealthEnabled),
 			SegmentGroupID:       zpaclient.StringValue(cr.Spec.ForProvider.SegmentGroupID),
 			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
@@ -168,7 +170,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
 
-	meta.SetExternalName(cr, *zpaclient.String(resp.Payload.ID))
+	meta.SetExternalName(cr, resp.Payload.ID)
 	return managed.ExternalCreation{
 		ExternalNameAssigned: true,
 	}, nil
@@ -181,9 +183,10 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotApplicationSegment)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &application_controller.UpdateApplicationV2UsingPUT1Params{
 		Context:       ctx,
-		CustomerID:    cr.Spec.ForProvider.CustomerID,
+		CustomerID:    customerID,
 		ApplicationID: meta.GetExternalName(cr),
 		Application: &models.ApplicationResource{
 			BypassType:           cr.Spec.ForProvider.BypassType,
@@ -199,7 +202,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 			IcmpAccessType:       cr.Spec.ForProvider.IcmpAccessType,
 			IPAnchored:           zpaclient.BoolValue(cr.Spec.ForProvider.IPAnchored),
 			IsCnameEnabled:       zpaclient.BoolValue(cr.Spec.ForProvider.IsCnameEnabled),
-			Name:                 cr.Name,
+			Name:                 cr.Spec.ForProvider.Name,
 			PassiveHealthEnabled: zpaclient.BoolValue(cr.Spec.ForProvider.PassiveHealthEnabled),
 			SegmentGroupID:       zpaclient.StringValue(cr.Spec.ForProvider.SegmentGroupID),
 			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
@@ -227,11 +230,12 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	forceDeleteApplication := true
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &application_controller.DeleteApplicationUsingDELETE1Params{
 		Context:       ctx,
 		ApplicationID: id,
-		CustomerID:    cr.Spec.ForProvider.CustomerID,
-		ForceDelete:   &forceDeleteApplication,
+		CustomerID:    customerID,
+		ForceDelete:   zpaclient.Bool(forceDeleteApplication),
 	}
 
 	_, err := e.client.ApplicationController.DeleteApplicationUsingDELETE1(req)

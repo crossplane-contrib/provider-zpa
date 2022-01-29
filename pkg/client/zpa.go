@@ -93,11 +93,6 @@ func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed
 		return nil, errors.Wrap(credsErr, errExtractSecret)
 	}
 
-	basepath := StringValue(pc.Spec.Basepath)
-	if basepath == "" {
-		basepath = "/"
-	}
-
 	/* Authenticate */
 	client := &http.Client{}
 	data := url.Values{}
@@ -130,11 +125,11 @@ func UseProviderConfig(ctx context.Context, c client.Client, mg resource.Managed
 		return nil, err
 	}
 
-	transport := httptransport.New(pc.Spec.Host, basepath, zpa.DefaultSchemes)
+	transport := httptransport.New(pc.Spec.Host, "/", zpa.DefaultSchemes)
 	transport.DefaultAuthentication = httptransport.BearerToken(creds.AccessToken)
 
 	// Enable this line to see request and response in console output
-	transport.SetDebug(true)
+	// transport.SetDebug(true)
 
 	return transport, nil
 }
@@ -167,4 +162,14 @@ func extractCredentialsFromSecret(ctx context.Context, client client.Client, s x
 
 func closeBody(c io.Closer) {
 	_ = c.Close()
+}
+
+// CustomerID needed for all resources in call
+func CustomerID(ctx context.Context, c client.Client, mg resource.Managed) (string, error) {
+	pc := &v1alpha1.ProviderConfig{}
+	if err := c.Get(ctx, types.NamespacedName{Name: mg.GetProviderConfigReference().Name}, pc); err != nil {
+		return "", errors.Wrap(err, errCannotGetProvider)
+	}
+
+	return pc.Spec.CustomerID, nil
 }

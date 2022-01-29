@@ -77,9 +77,6 @@ spec:
                     - DEFAULT
                     - SIEM
                     type: string
-                  customerID:
-                    description: CustomerID The unique identifier of the ZPA tenant.
-                    type: string
                   defaultIdleTimeout:
                     description: default idle timeout
                     type: string
@@ -126,6 +123,9 @@ spec:
                   isCnameEnabled:
                     description: is cname enabled
                     type: boolean
+                  name:
+                    description: Name for ApplicationSegment.
+                    type: string
                   passiveHealthEnabled:
                     description: passive health enabled
                     type: boolean
@@ -168,8 +168,8 @@ spec:
                       type: string
                     type: array
                 required:
-                - customerID
                 - domainNames
+                - name
                 type: object
               providerConfigRef:
                 default:
