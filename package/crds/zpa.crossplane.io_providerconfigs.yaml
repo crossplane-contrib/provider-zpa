@@ -49,9 +49,6 @@ spec:
           spec:
             description: A ProviderConfigSpec defines the desired state of a ProviderConfig.
             properties:
-              basepath:
-                description: Basepath of the ZPA API. Defaults to "/"
-                type: string
               clientID:
                 description: ClientID required to authenticate to ZPA.
                 properties:
@@ -158,12 +155,16 @@ spec:
                 required:
                 - source
                 type: object
+              customerId:
+                description: CustomerID The unique identifier of the ZPA tenant.
+                type: string
               host:
                 description: Host address of the ZPA instance used by the provider
                 type: string
             required:
             - clientID
             - clientSecret
+            - customerId
             - host
             type: object
           status:

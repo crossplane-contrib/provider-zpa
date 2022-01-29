@@ -42,9 +42,9 @@ type ServerGroupParameters struct {
 	// +required
 	AppConnectorGroups []string `json:"appConnectorGroups"`
 
-	// CustomerID The unique identifier of the ZPA tenant.
+	// Name for ServerGroup.
 	// +kubebuilder:validation:Required
-	CustomerID string `json:"customerID"`
+	Name string `json:"name"`
 }
 
 // A ServerGroupSpec defines the desired state of a ServerGroup.

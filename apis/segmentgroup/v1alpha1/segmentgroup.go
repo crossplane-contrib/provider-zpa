@@ -44,9 +44,9 @@ type SegmentGroupParameters struct {
 	// +kubebuilder:validation:Enum="0";"1"
 	TCPKeepAliveEnabled string `json:"tcpKeepAliveEnabled,omitempty"`
 
-	// CustomerID The unique identifier of the ZPA tenant.
+	// Name for SegmentGroup.
 	// +kubebuilder:validation:Required
-	CustomerID string `json:"customerID"`
+	Name *string `json:"name"`
 }
 
 // A SegmentGroupSpec defines the desired state of a SegmentGroup.

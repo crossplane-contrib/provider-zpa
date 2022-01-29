@@ -4,7 +4,7 @@ metadata:
   name: zpa-provider
 spec:
   host: config.private.zscaler.com
-  basepath: '/'
+  customerId: "999999999999999999"
   clientID:
     secretRef:
       key: clientID

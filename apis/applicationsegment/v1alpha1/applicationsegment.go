@@ -90,9 +90,9 @@ type ApplicationSegmentParameters struct {
 	// udp port ranges
 	UDPPortRanges []string `json:"udpPortRanges,omitempty"`
 
-	// CustomerID The unique identifier of the ZPA tenant.
+	// Name for ApplicationSegment.
 	// +kubebuilder:validation:Required
-	CustomerID string `json:"customerID"`
+	Name string `json:"name"`
 }
 
 // A ApplicationSegmentSpec defines the desired state of a ApplicationSegment.

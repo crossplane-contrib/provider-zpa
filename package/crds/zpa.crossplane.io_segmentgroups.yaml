@@ -68,9 +68,6 @@ spec:
                     - DEFAULT
                     - SIEM
                     type: string
-                  customerID:
-                    description: CustomerID The unique identifier of the ZPA tenant.
-                    type: string
                   description:
                     description: description
                     type: string
@@ -79,6 +76,9 @@ spec:
                     enum:
                     - true
                     type: boolean
+                  name:
+                    description: Name for SegmentGroup.
+                    type: string
                   policyMigrated:
                     description: policy migrated
                     type: boolean
@@ -89,8 +89,8 @@ spec:
                     - "1"
                     type: string
                 required:
-                - customerID
                 - enabled
+                - name
                 type: object
               providerConfigRef:
                 default:

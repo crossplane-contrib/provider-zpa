@@ -63,7 +63,7 @@ func SetupSegmentGroup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimi
 		Complete(managed.NewReconciler(mgr,
 			resource.ManagedKind(v1alpha1.SegmentGroupGroupVersionKind),
 			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), newClientFn: zpa.New}),
-			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
+			managed.WithInitializers(),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
 			managed.WithLogger(l.WithValues("controller", name)),
 			managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
@@ -108,10 +108,11 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &segment_group_controller.GetSegmentGroupUsingGET1Params{
 		Context:        ctx,
 		SegmentGroupID: id,
-		CustomerID:     cr.Spec.ForProvider.CustomerID,
+		CustomerID:     customerID,
 	}
 	resp, reqErr := e.client.SegmentGroupController.GetSegmentGroupUsingGET1(req)
 	if reqErr != nil {
@@ -138,11 +139,12 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.New(errNotSegmentGroup)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &segment_group_controller.AddSegmentGroupUsingPOST1Params{
 		Context:    ctx,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 		SegmentGroup: &models.SegmentGroup{
-			Name:                zpaclient.String(cr.Name),
+			Name:                cr.Spec.ForProvider.Name,
 			ConfigSpace:         cr.Spec.ForProvider.ConfigSpace,
 			Description:         cr.Spec.ForProvider.Description,
 			Enabled:             zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
@@ -155,7 +157,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
 
-	meta.SetExternalName(cr, *zpaclient.String(resp.Payload.ID))
+	meta.SetExternalName(cr, resp.Payload.ID)
 	return managed.ExternalCreation{
 		ExternalNameAssigned: true,
 	}, nil
@@ -168,12 +170,13 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotSegmentGroup)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &segment_group_controller.UpdateSegmentGroupUsingPUT1Params{
 		Context:        ctx,
-		CustomerID:     cr.Spec.ForProvider.CustomerID,
+		CustomerID:     customerID,
 		SegmentGroupID: meta.GetExternalName(cr),
 		SegmentGroup: &models.SegmentGroup{
-			Name:        zpaclient.String(cr.Name),
+			Name:        cr.Spec.ForProvider.Name,
 			ID:          meta.GetExternalName(cr),
 			ConfigSpace: cr.Spec.ForProvider.ConfigSpace,
 			Description: cr.Spec.ForProvider.Description,
@@ -201,10 +204,11 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotSegmentGroup)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &segment_group_controller.DeleteSegmentGroupUsingDELETE1Params{
 		Context:        ctx,
 		SegmentGroupID: id,
-		CustomerID:     cr.Spec.ForProvider.CustomerID,
+		CustomerID:     customerID,
 	}
 
 	_, err := e.client.SegmentGroupController.DeleteSegmentGroupUsingDELETE1(req)

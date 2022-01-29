@@ -30,13 +30,13 @@ type ProviderConfigSpec struct {
 	// ClientSecret required to authenticate to ZPA.
 	ClientSecret ProviderCredentials `json:"clientSecret"`
 
+	// CustomerID The unique identifier of the ZPA tenant.
+	// +kubebuilder:validation:Required
+	CustomerID string `json:"customerId"`
+
 	// Host address of the ZPA instance used by the provider
 	// +kubebuilder:validation:Required
 	Host string `json:"host"`
-
-	// Basepath of the ZPA API. Defaults to "/"
-	// +optional
-	Basepath *string `json:"basepath,omitempty"`
 }
 
 // ProviderCredentials required to authenticate.

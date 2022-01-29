@@ -4,7 +4,7 @@ metadata:
   name: example-segment
 spec:
   forProvider:
-    customerID: "999999999999999999"
+    name: SEGMENTGROUP
     enabled: true
   providerConfigRef:
     name: zpa-provider

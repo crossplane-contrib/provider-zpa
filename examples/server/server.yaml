@@ -4,7 +4,7 @@ metadata:
   name: example-server
 spec:
   forProvider:
-    customerID: "999999999999999999"
+    name: SERVER
     address: "8.8.8.8"
     # you can only use appServerGroupIdsRefs if appServerGroup is setup with dynamicDiscovery: false
     appServerGroupIdsRefs:

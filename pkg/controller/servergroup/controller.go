@@ -111,10 +111,11 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &server_group_controller.GetServerGroupUsingGET1Params{
 		Context:    ctx,
 		GroupID:    id,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 	}
 	resp, reqErr := e.client.ServerGroupController.GetServerGroupUsingGET1(req)
 	if reqErr != nil {
@@ -141,11 +142,12 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.New(errNotServer)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &server_group_controller.AddAppServerGroupUsingPOST1Params{
 		Context:    ctx,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 		Group: &models.ServerGroupDTO{
-			Name:             zpaclient.StringValue(&cr.Name),
+			Name:             cr.Spec.ForProvider.Name,
 			ConfigSpace:      cr.Spec.ForProvider.ConfigSpace,
 			Description:      cr.Spec.ForProvider.Description,
 			Enabled:          zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
@@ -159,7 +161,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		// we need required AppConnectorGroupName
 		connectorreq := &connector_group_controller.GetAppConnectorGroupUsingGET1Params{
 			Context:             ctx,
-			CustomerID:          cr.Spec.ForProvider.CustomerID,
+			CustomerID:          customerID,
 			AppConnectorGroupID: cr.Spec.ForProvider.AppConnectorGroups[i],
 		}
 		connectorresp, err := e.client.ConnectorGroupController.GetAppConnectorGroupUsingGET1(connectorreq)
@@ -180,7 +182,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
 	}
 
-	meta.SetExternalName(cr, *zpaclient.String(resp.Payload.ID))
+	meta.SetExternalName(cr, resp.Payload.ID)
 	return managed.ExternalCreation{
 		ExternalNameAssigned: true,
 	}, nil
@@ -193,12 +195,13 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotServer)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &server_group_controller.UpdateAppServerGroupUsingPUT1Params{
 		Context:    ctx,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 		GroupID:    meta.GetExternalName(cr),
 		Group: &models.ServerGroupDTO{
-			Name:             zpaclient.StringValue(&cr.Name),
+			Name:             cr.Spec.ForProvider.Name,
 			ConfigSpace:      cr.Spec.ForProvider.ConfigSpace,
 			Description:      cr.Spec.ForProvider.Description,
 			Enabled:          zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
@@ -211,7 +214,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		// we need required AppConnectorGroupName
 		connectorreq := &connector_group_controller.GetAppConnectorGroupUsingGET1Params{
 			Context:             ctx,
-			CustomerID:          cr.Spec.ForProvider.CustomerID,
+			CustomerID:          customerID,
 			AppConnectorGroupID: cr.Spec.ForProvider.AppConnectorGroups[i],
 		}
 		connectorresp, err := e.client.ConnectorGroupController.GetAppConnectorGroupUsingGET1(connectorreq)
@@ -245,10 +248,11 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotServer)
 	}
 
+	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &server_group_controller.DeleteAppServerGroupUsingDELETE1Params{
 		Context:    ctx,
 		GroupID:    id,
-		CustomerID: cr.Spec.ForProvider.CustomerID,
+		CustomerID: customerID,
 	}
 
 	_, err := e.client.ServerGroupController.DeleteAppServerGroupUsingDELETE1(req)
