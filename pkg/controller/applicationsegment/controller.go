@@ -372,5 +372,9 @@ func isUpToDate(cr *v1alpha1.ApplicationSegmentParameters, gobj *application_con
 		return false
 	}
 
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Name), zpaclient.StringToPtr(obj.Name)) {
+		return false
+	}
+
 	return true
 }

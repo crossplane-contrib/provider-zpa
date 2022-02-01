@@ -309,5 +309,9 @@ func isUpToDate(cr *v1alpha1.ServerGroupParameters, gobj *server_group_controlle
 		return false
 	}
 
+	if !zpaclient.IsEqualString(zpaclient.StringToPtr(cr.Name), zpaclient.StringToPtr(obj.Name)) {
+		return false
+	}
+
 	return true
 }
