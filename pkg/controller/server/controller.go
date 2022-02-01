@@ -288,5 +288,9 @@ func isUpToDate(cr *v1alpha1.ServerParameters, gobj *app_server_controller.GetAp
 		return false
 	}
 
+	if !zpaclient.IsEqualString(cr.Name, obj.Name) {
+		return false
+	}
+
 	return true
 }

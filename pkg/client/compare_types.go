@@ -1,5 +1,7 @@
 package client
 
+import "strings"
+
 // IsEqualString determinetes if StringValue's of two pointers are equal.
 func IsEqualString(s1 *string, s2 *string) bool {
 	return StringValue(s1) == StringValue(s2)
@@ -22,11 +24,13 @@ func IsEqualStringArrayContent(a1 []string, a2 []string) bool {
 
 	map2 := make(map[string]struct{}, len(a2))
 	for _, a2v := range a2 {
-		map2[a2v] = struct{}{}
+		a2vl := strings.ToLower(a2v)
+		map2[a2vl] = struct{}{}
 	}
 
 	for _, a1v := range a1 {
-		if _, exists := map2[a1v]; !exists {
+		a1vl := strings.ToLower(a1v)
+		if _, exists := map2[a1vl]; !exists {
 			return false
 		}
 	}

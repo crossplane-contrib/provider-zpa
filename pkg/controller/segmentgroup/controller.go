@@ -262,5 +262,9 @@ func isUpToDate(cr *v1alpha1.SegmentGroupParameters, gobj *segment_group_control
 		return false
 	}
 
+	if !zpaclient.IsEqualString(cr.Name, obj.Name) {
+		return false
+	}
+
 	return true
 }
