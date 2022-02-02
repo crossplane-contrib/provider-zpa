@@ -157,6 +157,30 @@ spec:
                           is selected.
                         type: object
                     type: object
+                  serverGroups:
+                    description: server groups
+                    items:
+                      properties:
+                        configSpace:
+                          type: string
+                        creationTime:
+                          type: string
+                        description:
+                          type: string
+                        dynamicDiscovery:
+                          type: boolean
+                        enabled:
+                          type: boolean
+                        id:
+                          type: string
+                        modifiedBy:
+                          type: string
+                        modifiedTime:
+                          type: string
+                        name:
+                          type: string
+                      type: object
+                    type: array
                   tcpPortRanges:
                     description: tcp port ranges
                     items:

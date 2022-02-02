@@ -90,9 +90,24 @@ type ApplicationSegmentParameters struct {
 	// udp port ranges
 	UDPPortRanges []string `json:"udpPortRanges,omitempty"`
 
+	// server groups
+	ServerGroups []AppServerGroup `json:"serverGroups,omitempty"`
+
 	// Name for ApplicationSegment.
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
+}
+
+type AppServerGroup struct {
+	ConfigSpace      string  `json:"configSpace,omitempty"`
+	CreationTime     string  `json:"creationTime,omitempty"`
+	Description      string  `json:"description,omitempty"`
+	Enabled          bool    `json:"enabled,omitempty"`
+	ID               string  `json:"id,omitempty"`
+	DynamicDiscovery bool    `json:"dynamicDiscovery,omitempty"`
+	ModifiedBy       string  `json:"modifiedBy,omitempty"`
+	ModifiedTime     string  `json:"modifiedTime,omitempty"`
+	Name             *string `json:"name,omitempty"`
 }
 
 // A ApplicationSegmentSpec defines the desired state of a ApplicationSegment.

@@ -165,6 +165,15 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		},
 	}
 
+	for i := range cr.Spec.ForProvider.ServerGroups {
+		req.Application.ServerGroups = append(
+			req.Application.ServerGroups,
+			&models.AppServerGroup{
+				ID:   cr.Spec.ForProvider.ServerGroups[i].ID,
+				Name: cr.Spec.ForProvider.ServerGroups[i].Name,
+			})
+	}
+
 	resp, err := e.client.ApplicationController.AddApplicationUsingPOST1(req)
 	if err != nil {
 		return managed.ExternalCreation{}, errors.Wrap(err, errCreateFailed)
@@ -210,6 +219,14 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		},
 	}
 
+	for i := range cr.Spec.ForProvider.ServerGroups {
+		req.Application.ServerGroups = append(
+			req.Application.ServerGroups,
+			&models.AppServerGroup{
+				ID:   cr.Spec.ForProvider.ServerGroups[i].ID,
+				Name: cr.Spec.ForProvider.ServerGroups[i].Name,
+			})
+	}
 	if _, _, err := e.client.ApplicationController.UpdateApplicationV2UsingPUT1(req); err != nil {
 		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateFailed)
 	}

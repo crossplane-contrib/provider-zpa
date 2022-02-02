@@ -15,5 +15,7 @@ spec:
     udpPortRanges:
       - "443"
       - "443"
+    serverGroups:
+      - id: ""
   providerConfigRef:
     name: zpa-provider
