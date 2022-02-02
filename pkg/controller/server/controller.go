@@ -148,7 +148,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 			Address:           cr.Spec.ForProvider.Address,
 			ConfigSpace:       cr.Spec.ForProvider.ConfigSpace,
 			Description:       cr.Spec.ForProvider.Description,
-			AppServerGroupIds: cr.Spec.ForProvider.AppServerGroupIds,
+			AppServerGroupIds: cr.Spec.ForProvider.ServerGroups,
 			Enabled:           zpaclient.BoolValue(cr.Spec.ForProvider.Enabled),
 		},
 	}
@@ -185,8 +185,8 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		},
 	}
 
-	if len(cr.Spec.ForProvider.AppServerGroupIds) > 0 {
-		req.Server.AppServerGroupIds = cr.Spec.ForProvider.AppServerGroupIds
+	if len(cr.Spec.ForProvider.ServerGroups) > 0 {
+		req.Server.AppServerGroupIds = cr.Spec.ForProvider.ServerGroups
 	} else {
 		req.Server.AppServerGroupIds = make([]string, 0)
 	}
@@ -211,7 +211,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	// Remove the reference to this server from server groups.
-	if len(cr.Spec.ForProvider.AppServerGroupIds) != 0 {
+	if len(cr.Spec.ForProvider.ServerGroups) != 0 {
 		upreq := &app_server_controller.UpdateAppServerUsingPUT1Params{
 			Context:    ctx,
 			CustomerID: customerID,
@@ -284,7 +284,7 @@ func isUpToDate(cr *v1alpha1.ServerParameters, gobj *app_server_controller.GetAp
 		return false
 	}
 
-	if !zpaclient.IsEqualStringArrayContent(cr.AppServerGroupIds, obj.AppServerGroupIds) {
+	if !zpaclient.IsEqualStringArrayContent(cr.ServerGroups, obj.AppServerGroupIds) {
 		return false
 	}
 
