@@ -21,13 +21,13 @@ import (
 
 // CustomServerParameters that are not part of the ZPA API
 type CustomServerParameters struct {
-	// AppServerGroupIdsRef is a reference to a AppServerGroupIds so set external ID
+	// ServerGroupRefs is a reference to a ServerGroup so set external ID
 	// +optional
-	AppServerGroupIdsRefs []xpv1.Reference `json:"appServerGroupIdsRefs,omitempty"`
+	ServerGroupRefs []xpv1.Reference `json:"serverGroupRefs,omitempty"`
 
-	// AppServerGroupIdsSelector selects a reference to a AppServerGroupIds so set external ID
+	// ServerGroupSelector selects a reference to a ServerGroup so set external ID
 	// +optional
-	AppServerGroupIdsSelector *xpv1.Selector `json:"appServerGroupIdsSelector,omitempty"`
+	ServerGroupSelector *xpv1.Selector `json:"serverGroupSelector,omitempty"`
 }
 
 // A ServerParameters defines desired state of a ServerSegment
@@ -53,8 +53,11 @@ type ServerParameters struct {
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 
-	// app server group ids
-	AppServerGroupIds []string `json:"appServerGroupIds,omitempty"`
+	// server group ids
+	// +crossplane:generate:reference:type=github.com/crossplane-contrib/provider-zpa/apis/servergroup/v1alpha1.ServerGroup
+	// +crossplane:generate:reference:refFieldName=ServerGroupRefs
+	// +crossplane:generate:reference:selectorFieldName=ServerGroupSelector
+	ServerGroups []string `json:"serverGroups,omitempty"`
 }
 
 // A ServerSpec defines the desired state of a Server.

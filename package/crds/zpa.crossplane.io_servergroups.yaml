@@ -89,7 +89,6 @@ spec:
                     description: Name for ServerGroup.
                     type: string
                 required:
-                - appConnectorGroups
                 - dynamicDiscovery
                 - name
                 type: object

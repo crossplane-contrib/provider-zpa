@@ -6,8 +6,8 @@ spec:
   forProvider:
     name: SERVER
     address: "8.8.8.8"
-    # you can only use appServerGroupIdsRefs if appServerGroup is setup with dynamicDiscovery: false
-    appServerGroupIdsRefs:
+    # you can only use serverGroupRefs if serverGroup is setup with dynamicDiscovery: false
+    serverGroupRefs:
       - name: example-servergroup
     enabled: true
   providerConfigRef:
