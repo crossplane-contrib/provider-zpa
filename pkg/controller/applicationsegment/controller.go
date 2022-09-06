@@ -36,6 +36,7 @@ import (
 
 	zpa "github.com/haarchri/zpa-go-client/pkg/client"
 	"github.com/haarchri/zpa-go-client/pkg/client/application_controller"
+	"github.com/haarchri/zpa-go-client/pkg/client/server_group_controller"
 	"github.com/haarchri/zpa-go-client/pkg/models"
 
 	v1alpha1 "github.com/crossplane-contrib/provider-zpa/apis/applicationsegment/v1alpha1"
@@ -48,6 +49,7 @@ const (
 	errDescribeFailed        = "cannot describe ApplicationSegment"
 	errUpdateFailed          = "cannot update ApplicationSegment"
 	errDeleteFailed          = "cannot delete ApplicationSegment"
+	errServerGroupNotFound   = "cannot get ServerGroup"
 )
 
 // SetupApplicationSegment adds a controller that reconciles ApplicationSegments.
@@ -162,7 +164,27 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 			SegmentGroupID:       zpaclient.StringValue(cr.Spec.ForProvider.SegmentGroupID),
 			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
 			UDPPortRanges:        cr.Spec.ForProvider.UDPPortRanges,
+			ServerGroups:         make([]*models.AppServerGroup, 0),
 		},
+	}
+
+	for i := range cr.Spec.ForProvider.ServerGroups {
+		servergroupreq := &server_group_controller.GetServerGroupUsingGET1Params{
+			Context:    ctx,
+			CustomerID: customerID,
+			GroupID:    cr.Spec.ForProvider.ServerGroups[i],
+		}
+		servergroupresp, err := e.client.ServerGroupController.GetServerGroupUsingGET1(servergroupreq)
+		if err != nil {
+			return managed.ExternalCreation{}, errors.Wrap(err, errServerGroupNotFound)
+		}
+
+		req.Application.ServerGroups = append(
+			req.Application.ServerGroups,
+			&models.AppServerGroup{
+				ID:   cr.Spec.ForProvider.ServerGroups[i],
+				Name: zpaclient.String(servergroupresp.Payload.Name),
+			})
 	}
 
 	resp, err := e.client.ApplicationController.AddApplicationUsingPOST1(req)
@@ -207,7 +229,27 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 			SegmentGroupID:       zpaclient.StringValue(cr.Spec.ForProvider.SegmentGroupID),
 			TCPPortRanges:        cr.Spec.ForProvider.TCPPortRanges,
 			UDPPortRanges:        cr.Spec.ForProvider.UDPPortRanges,
+			ServerGroups:         make([]*models.AppServerGroup, 0),
 		},
+	}
+
+	for i := range cr.Spec.ForProvider.ServerGroups {
+		servergroupreq := &server_group_controller.GetServerGroupUsingGET1Params{
+			Context:    ctx,
+			CustomerID: customerID,
+			GroupID:    cr.Spec.ForProvider.ServerGroups[i],
+		}
+		servergroupresp, err := e.client.ServerGroupController.GetServerGroupUsingGET1(servergroupreq)
+		if err != nil {
+			return managed.ExternalUpdate{}, errors.Wrap(err, errServerGroupNotFound)
+		}
+
+		req.Application.ServerGroups = append(
+			req.Application.ServerGroups,
+			&models.AppServerGroup{
+				ID:   cr.Spec.ForProvider.ServerGroups[i],
+				Name: zpaclient.String(servergroupresp.Payload.Name),
+			})
 	}
 
 	if _, _, err := e.client.ApplicationController.UpdateApplicationV2UsingPUT1(req); err != nil {
@@ -228,14 +270,12 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotApplicationSegment)
 	}
 
-	forceDeleteApplication := true
-
 	customerID, _ := zpaclient.CustomerID(ctx, e.kube, mg)
 	req := &application_controller.DeleteApplicationUsingDELETE1Params{
 		Context:       ctx,
 		ApplicationID: id,
 		CustomerID:    customerID,
-		ForceDelete:   zpaclient.Bool(forceDeleteApplication),
+		ForceDelete:   zpaclient.Bool(true),
 	}
 
 	_, err := e.client.ApplicationController.DeleteApplicationUsingDELETE1(req)
@@ -293,13 +333,25 @@ func (e *external) LateInitialize(cr *v1alpha1.ApplicationSegment, obj *applicat
 // generateObservation generates observation for the input object application_controller.GetApplicationUsingGET1OK
 func generateObservation(in *application_controller.GetApplicationUsingGET1OK) v1alpha1.Observation {
 	cr := v1alpha1.Observation{}
-
 	obj := in.Payload
 
-	cr.CreationTime = obj.CreationTime
 	cr.ID = obj.ID
+	cr.CreationTime = obj.CreationTime
 	cr.ModifiedBy = obj.ModifiedBy
 	cr.ModifiedTime = obj.ModifiedTime
+	cr.ApplicationSegment.BypassType = obj.BypassType
+	cr.ApplicationSegment.ConfigSpace = obj.ConfigSpace
+	cr.ApplicationSegment.DefaultIdleTimeout = obj.DefaultIdleTimeout
+	cr.ApplicationSegment.DefaultMaxAge = obj.DefaultMaxAge
+	cr.ApplicationSegment.DomainNames = append(cr.ApplicationSegment.DomainNames, obj.DomainNames...)
+	cr.ApplicationSegment.DoubleEncrypt = zpaclient.Bool(obj.DoubleEncrypt)
+	cr.ApplicationSegment.Enabled = zpaclient.Bool(obj.Enabled)
+	cr.ApplicationSegment.HealthCheckType = obj.HealthCheckType
+	cr.ApplicationSegment.HealthReporting = obj.HealthReporting
+	cr.ApplicationSegment.IPAnchored = zpaclient.Bool(obj.IPAnchored)
+	for i := range obj.ServerGroups {
+		cr.ServerGroup = append(cr.ServerGroup, v1alpha1.AppServerGroup(*obj.ServerGroups[i]))
+	}
 
 	return cr
 }

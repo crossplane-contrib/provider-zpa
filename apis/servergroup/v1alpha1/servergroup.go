@@ -39,8 +39,7 @@ type ServerGroupParameters struct {
 	DynamicDiscovery bool `json:"dynamicDiscovery"`
 
 	// app connector groups
-	// +required
-	AppConnectorGroups []string `json:"appConnectorGroups"`
+	AppConnectorGroups []string `json:"appConnectorGroups,omitempty"`
 
 	// Name for ServerGroup.
 	// +kubebuilder:validation:Required

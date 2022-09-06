@@ -12,8 +12,7 @@ spec:
     tcpPortRanges:
       - "443"
       - "443"
-    udpPortRanges:
-      - "443"
-      - "443"
+    serverGroupRefs:
+      - name: example-servergroup
   providerConfigRef:
     name: zpa-provider

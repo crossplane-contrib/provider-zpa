@@ -157,6 +157,39 @@ spec:
                           is selected.
                         type: object
                     type: object
+                  serverGroupRefs:
+                    description: ServerGroupRefs are references to ServerGroups used
+                      to set so set external ID.
+                    items:
+                      description: A Reference to a named object.
+                      properties:
+                        name:
+                          description: Name of the referenced object.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  serverGroupSelector:
+                    description: ServerGroupSelector selects references to ServerGroups
+                      used so set external ID.
+                    properties:
+                      matchControllerRef:
+                        description: MatchControllerRef ensures an object with the
+                          same controller reference as the selecting object is selected.
+                        type: boolean
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: MatchLabels ensures an object with matching labels
+                          is selected.
+                        type: object
+                    type: object
+                  serverGroups:
+                    description: server groups ids
+                    items:
+                      type: string
+                    type: array
                   tcpPortRanges:
                     description: tcp port ranges
                     items:
@@ -221,6 +254,152 @@ spec:
               atProvider:
                 description: Observation are the observable fields of a ApplicationSegment.
                 properties:
+                  applicationSegment:
+                    description: A ApplicationSegmentParameters defines desired state
+                      of a ApplicationSegmentSegment
+                    properties:
+                      bypassType:
+                        description: bypass type
+                        enum:
+                        - ALWAYS
+                        - NEVER
+                        - ON_NET
+                        type: string
+                      configSpace:
+                        description: config space
+                        enum:
+                        - DEFAULT
+                        - SIEM
+                        type: string
+                      defaultIdleTimeout:
+                        description: default idle timeout
+                        type: string
+                      defaultMaxAge:
+                        description: default max age
+                        type: string
+                      description:
+                        description: description
+                        type: string
+                      domainNames:
+                        description: domain names
+                        items:
+                          type: string
+                        type: array
+                      doubleEncrypt:
+                        description: double encrypt
+                        type: boolean
+                      enabled:
+                        description: enabled
+                        type: boolean
+                      healthCheckType:
+                        description: health check type
+                        enum:
+                        - DEFAULT
+                        - NONE
+                        type: string
+                      healthReporting:
+                        description: health reporting
+                        enum:
+                        - NONE
+                        - ON_ACCESS
+                        - CONTINUOUS
+                        type: string
+                      icmpAccessType:
+                        description: icmp access type
+                        enum:
+                        - PING_TRACEROUTING
+                        - PING
+                        - NONE
+                        type: string
+                      ipAnchored:
+                        description: ip anchored
+                        type: boolean
+                      isCnameEnabled:
+                        description: is cname enabled
+                        type: boolean
+                      name:
+                        description: Name for ApplicationSegment.
+                        type: string
+                      passiveHealthEnabled:
+                        description: passive health enabled
+                        type: boolean
+                      segmentGroupID:
+                        description: segment group Id
+                        type: string
+                      segmentGroupIDRef:
+                        description: SegmentGroupIDRef is a reference to a SegmentGroupID
+                          so set external ID
+                        properties:
+                          name:
+                            description: Name of the referenced object.
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      segmentGroupIDSelector:
+                        description: SegmentGroupIDSelector selects a reference to
+                          a SegmentGroupID so set external ID
+                        properties:
+                          matchControllerRef:
+                            description: MatchControllerRef ensures an object with
+                              the same controller reference as the selecting object
+                              is selected.
+                            type: boolean
+                          matchLabels:
+                            additionalProperties:
+                              type: string
+                            description: MatchLabels ensures an object with matching
+                              labels is selected.
+                            type: object
+                        type: object
+                      serverGroupRefs:
+                        description: ServerGroupRefs are references to ServerGroups
+                          used to set so set external ID.
+                        items:
+                          description: A Reference to a named object.
+                          properties:
+                            name:
+                              description: Name of the referenced object.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                      serverGroupSelector:
+                        description: ServerGroupSelector selects references to ServerGroups
+                          used so set external ID.
+                        properties:
+                          matchControllerRef:
+                            description: MatchControllerRef ensures an object with
+                              the same controller reference as the selecting object
+                              is selected.
+                            type: boolean
+                          matchLabels:
+                            additionalProperties:
+                              type: string
+                            description: MatchLabels ensures an object with matching
+                              labels is selected.
+                            type: object
+                        type: object
+                      serverGroups:
+                        description: server groups ids
+                        items:
+                          type: string
+                        type: array
+                      tcpPortRanges:
+                        description: tcp port ranges
+                        items:
+                          type: string
+                        type: array
+                      udpPortRanges:
+                        description: udp port ranges
+                        items:
+                          type: string
+                        type: array
+                    required:
+                    - domainNames
+                    - name
+                    type: object
                   creationTime:
                     type: string
                   id:
@@ -229,6 +408,30 @@ spec:
                     type: string
                   modifiedTime:
                     type: string
+                  serverGroup:
+                    items:
+                      description: AppServerGroup defines desired state of a AppServerGroup
+                      properties:
+                        configSpace:
+                          type: string
+                        creationTime:
+                          type: string
+                        description:
+                          type: string
+                        dynamicDiscovery:
+                          type: boolean
+                        enabled:
+                          type: boolean
+                        id:
+                          type: string
+                        modifiedBy:
+                          type: string
+                        modifiedTime:
+                          type: string
+                        name:
+                          type: string
+                      type: object
+                    type: array
                 type: object
               conditions:
                 description: Conditions of the resource.
