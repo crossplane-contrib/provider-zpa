@@ -24,6 +24,6 @@ spec:
 #   name: zpa-provider-creds
 #   namespace: crossplane-system
 # type: Opaque
-# data:
-#   clientID: Y2xpZW50X2lk
-#   clientSecret: Y2xpZW50X3NlY3JldAo=
+# stringData:
+#   clientID: clientID
+#   clientSecret: clientSecret

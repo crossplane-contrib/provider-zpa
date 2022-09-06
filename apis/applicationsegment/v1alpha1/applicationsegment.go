@@ -28,6 +28,16 @@ type CustomApplicationSegmentParameters struct {
 	// SegmentGroupIDSelector selects a reference to a SegmentGroupID so set external ID
 	// +optional
 	SegmentGroupIDSelector *xpv1.Selector `json:"segmentGroupIDSelector,omitempty"`
+
+	// ServerGroupRefs are references to ServerGroups used to set
+	// so set external ID.
+	// +optional
+	ServerGroupRefs []xpv1.Reference `json:"serverGroupRefs,omitempty"`
+
+	// ServerGroupSelector selects references to ServerGroups used
+	// so set external ID.
+	// +optional
+	ServerGroupSelector *xpv1.Selector `json:"serverGroupSelector,omitempty"`
 }
 
 // A ApplicationSegmentParameters defines desired state of a ApplicationSegmentSegment
@@ -82,6 +92,7 @@ type ApplicationSegmentParameters struct {
 	PassiveHealthEnabled *bool `json:"passiveHealthEnabled,omitempty"`
 
 	// segment group Id
+	// +crossplane:generate:reference:type=github.com/crossplane-contrib/provider-zpa/apis/segmentgroup/v1alpha1.SegmentGroup
 	SegmentGroupID *string `json:"segmentGroupID,omitempty"`
 
 	// tcp port ranges
@@ -89,6 +100,12 @@ type ApplicationSegmentParameters struct {
 
 	// udp port ranges
 	UDPPortRanges []string `json:"udpPortRanges,omitempty"`
+
+	// server groups ids
+	// +crossplane:generate:reference:type=github.com/crossplane-contrib/provider-zpa/apis/servergroup/v1alpha1.ServerGroup
+	// +crossplane:generate:reference:refFieldName=ServerGroupRefs
+	// +crossplane:generate:reference:selectorFieldName=ServerGroupSelector
+	ServerGroups []string `json:"serverGroups,omitempty"`
 
 	// Name for ApplicationSegment.
 	// +kubebuilder:validation:Required
@@ -109,10 +126,25 @@ type ApplicationSegmentStatus struct {
 
 // Observation are the observable fields of a ApplicationSegment.
 type Observation struct {
-	CreationTime string `json:"creationTime,omitempty"`
-	ModifiedBy   string `json:"modifiedBy,omitempty"`
-	ModifiedTime string `json:"modifiedTime,omitempty"`
-	ID           string `json:"id,omitempty"`
+	CreationTime       string                       `json:"creationTime,omitempty"`
+	ModifiedBy         string                       `json:"modifiedBy,omitempty"`
+	ModifiedTime       string                       `json:"modifiedTime,omitempty"`
+	ID                 string                       `json:"id,omitempty"`
+	ServerGroup        []AppServerGroup             `json:"serverGroup,omitempty"`
+	ApplicationSegment ApplicationSegmentParameters `json:"applicationSegment,omitempty"`
+}
+
+// AppServerGroup defines desired state of a AppServerGroup
+type AppServerGroup struct {
+	ConfigSpace      string  `json:"configSpace,omitempty"`
+	CreationTime     string  `json:"creationTime,omitempty"`
+	Description      string  `json:"description,omitempty"`
+	DynamicDiscovery bool    `json:"dynamicDiscovery,omitempty"`
+	Enabled          bool    `json:"enabled,omitempty"`
+	ID               string  `json:"id,omitempty"`
+	ModifiedBy       string  `json:"modifiedBy,omitempty"`
+	ModifiedTime     string  `json:"modifiedTime,omitempty"`
+	Name             *string `json:"name,omitempty"`
 }
 
 // +kubebuilder:object:root=true
