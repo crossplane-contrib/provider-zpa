@@ -37,6 +37,8 @@ GO111MODULE = on
 # ====================================================================================
 # Setup Kubernetes tools
 
+UP_VERSION = v0.13.0
+UP_CHANNEL = stable
 USE_HELM3 = true
 HELM3_VERSION = v3.6.3
 -include build/makelib/k8s_tools.mk
@@ -44,9 +46,22 @@ HELM3_VERSION = v3.6.3
 # ====================================================================================
 # Setup Images
 
-DOCKER_REGISTRY = crossplane
-IMAGES = provider-zpa provider-zpa-controller
--include build/makelib/image.mk
+IMAGES = provider-zpa
+-include build/makelib/imagelight.mk
+
+# ====================================================================================
+# Setup XPKG
+
+XPKG_REG_ORGS ?= xpkg.upbound.io/crossplane-contrib index.docker.io/crossplanecontrib
+# NOTE(hasheddan): skip promoting on xpkg.upbound.io as channel tags are
+# inferred.
+XPKG_REG_ORGS_NO_PROMOTE ?= xpkg.upbound.io/crossplane-contrib
+XPKGS = provider-zpa
+-include build/makelib/xpkg.mk
+
+# NOTE(hasheddan): we force image building to happen prior to xpkg build so that
+# we ensure image is present in daemon.
+xpkg.build.provider-zpa: do.build.images
 
 # ====================================================================================
 # Targets
@@ -91,6 +106,11 @@ test-integration: $(KIND) $(KUBECTL) $(UP) $(HELM3)
 submodules:
 	@git submodule sync
 	@git submodule update --init --recursive
+
+# NOTE(hasheddan): we must ensure up is installed in tool cache prior to build
+# as including the k8s_tools machinery prior to the xpkg machinery sets UP to
+# point to tool cache.
+build.init: $(UP)
 
 # This is for running out-of-cluster locally, and is for convenience. Running
 # this make target will print out the command which was used. For more control,
