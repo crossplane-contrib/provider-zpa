@@ -211,7 +211,7 @@ func (in *CustomApplicationSegmentParameters) DeepCopyInto(out *CustomApplicatio
 	if in.SegmentGroupIDRef != nil {
 		in, out := &in.SegmentGroupIDRef, &out.SegmentGroupIDRef
 		*out = new(v1.Reference)
-		**out = **in
+		(*in).DeepCopyInto(*out)
 	}
 	if in.SegmentGroupIDSelector != nil {
 		in, out := &in.SegmentGroupIDSelector, &out.SegmentGroupIDSelector
@@ -221,7 +221,9 @@ func (in *CustomApplicationSegmentParameters) DeepCopyInto(out *CustomApplicatio
 	if in.ServerGroupRefs != nil {
 		in, out := &in.ServerGroupRefs, &out.ServerGroupRefs
 		*out = make([]v1.Reference, len(*in))
-		copy(*out, *in)
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	if in.ServerGroupSelector != nil {
 		in, out := &in.ServerGroupSelector, &out.ServerGroupSelector
